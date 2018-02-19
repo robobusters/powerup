@@ -84,29 +84,17 @@ public class Robot extends IterativeRobot {
 	//int uServo = 9;
 	//int lServo = 8;
 	
-
 	boolean upButton = false;
-
 	boolean downButton = false;
-
 	int positionCase = 0;
-
 	Spark lift = new Spark(liftPort);
-
 	int encoderPort1 = 0;
-
 	int encoderPort2 = 1;
-
 	Encoder enc=new Encoder(encoderPort1,encoderPort2,false,Encoder.EncodingType.k4X);
-
 	double distance;
-
 	double period;
-
 	double rate;
-
 	boolean direction;
-
 	boolean stopped;
 	
 	//things robot needs to do on startup
@@ -120,23 +108,16 @@ public class Robot extends IterativeRobot {
 		chassis = new DifferentialDrive(leftMotor, rightMotor);
 		chassis.setExpiration(.1);
 		chassis.setSafetyEnabled(false);
-		
 		dtr = new DriveTrain(chassis, xbox, porting);
 		
 		//setup gyro
 		dtr.gyro.calibrate();
 		dtr.gyro.reset();
-
 		enc.setMaxPeriod(.1);
-
 		enc.setMinRate(10);
-
 		enc.setDistancePerPulse(0.71);
-
 		enc.setReverseDirection(true);
-
 		enc.setSamplesToAverage(7);
-
 		enc.reset();
 		
 		//vision code init
@@ -248,163 +229,82 @@ public class Robot extends IterativeRobot {
 	
 	public void buttons() {
 		
-
 		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
-
 		{
-
 			if(positionCase != 0)
-
 				positionCase--;
-
 			directionLift = 0;
-
 		}
-
 		else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
-
 		{
-
 			if(positionCase != 6)
-
 				positionCase++;
-
 			directionLift = 1;
-
 		}
-
 		SmartDashboard.putNumber("positionCase", positionCase);
 
-		
-
 		if(directionLift == 0)
-
 		{
-
 			switch(positionCase) {
-
 			case 0: 
-
 				lift.set(0);
-
 				break;
-
 			case 1:
-
 				if(enc.getDistance() > 0)
-
 					lift.set(-1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 2:
-
 				if(enc.getDistance() > 20*4)
-
 					lift.set(-1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 3:
-
 				if(enc.getDistance() > 90*4)
-
 					lift.set(-1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 4:
-
 				if(enc.getDistance() > 110*4)
-
 					lift.set(-1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
-			
-
 			}
-
 		}
-
-		
-
 		if(directionLift == 1)
-
 		{
-
 			switch(positionCase) {
-
 			case 2:
-
 				if(enc.getDistance() < 20*4)
-
 					lift.set(1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 3:
-
 				if(enc.getDistance() < 90*4)
-
 					lift.set(1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 4:
-
 				if(enc.getDistance() < 110*4)
-
 					lift.set(1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 5:
-
 				if(enc.getDistance() < 180*4)
-
 					lift.set(1);
-
 				else
-
 					lift.set(0);
-
 				break;
-
 			case 6:
-
 				lift.set(0);
-
 				break;
-
 			}
 		}
 
