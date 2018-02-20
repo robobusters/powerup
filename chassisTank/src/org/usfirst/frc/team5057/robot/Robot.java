@@ -9,7 +9,6 @@ package org.usfirst.frc.team5057.robot;
 
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
-
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.AnalogAccelerometer;
@@ -18,6 +17,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Accelerometer;
@@ -49,9 +50,12 @@ public class Robot extends IterativeRobot {
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	
 	//ports
-	final int leftDrivePort=0;
-	final int rightDrivePort=1;
-	final int liftPort=2;//change
+	final int leftDrivePort = 0;
+	final int rightDrivePort = 1;
+	final int liftPortL = 2;
+	final int liftPortR = 3;
+	final int intakePortL = 4;
+	final int intakePortR = 5;
 	
 	//driveTrain
 	DifferentialDrive chassis;
@@ -60,16 +64,6 @@ public class Robot extends IterativeRobot {
 	JoystickLocations porting = new JoystickLocations();
 	XboxController xbox = new XboxController(porting.joystickPort);
 	DriveTrain dtr;
-	
-	//lift
-	int directionLift = 0;
-	
-	/*
-	//lift
-	Spark lift = new Spark(liftPort);
-	int encoderPort = 10;//change
-	Encoder roller=new Encoder(encoderPort,encoderPort,false,Encoder.EncodingType.k4X);//check type
-	*/
 	
 	//vision init. This is code we will use for the vision programming. Ignore for now
 	VisionThread visionT;
@@ -80,22 +74,34 @@ public class Robot extends IterativeRobot {
 	final Object imgLock = new Object();
 	Relay LED;
 	int relayPort = 3;
-
-	//int uServo = 9;
-	//int lServo = 8;
 	
+	//encoders and lift
+	int directionLift = 0;
 	boolean upButton = false;
 	boolean downButton = false;
 	int positionCase = 0;
-	Spark lift = new Spark(liftPort);
+	Victor liftLeft = new Victor(liftPortL);
+	Victor liftRight = new Victor(liftPortR);
 	int encoderPort1 = 0;
 	int encoderPort2 = 1;
-	Encoder enc=new Encoder(encoderPort1,encoderPort2,false,Encoder.EncodingType.k4X);
-	double distance;
-	double period;
-	double rate;
-	boolean direction;
-	boolean stopped;
+	int encoderPort3 = 2;
+	int encoderPort4 = 3;
+	Encoder enc1 = new Encoder(encoderPort1, encoderPort2, false, Encoder.EncodingType.k4X);
+	Encoder enc2 = new Encoder(encoderPort3, encoderPort4, false, Encoder.EncodingType.k4X);
+	double distance1;
+	double distance2;
+	double rate1;
+	double rate2;
+	boolean direction1;
+	boolean direction2;
+	boolean stopped1;
+	boolean stopped2;
+	
+	//limit switches
+	final int limitPortUp = 4;
+	final int limitPortDown = 5;
+	DigitalInput limUp = new DigitalInput(limitPortUp);
+	DigitalInput limDown = new DigitalInput(limitPortDown);
 	
 	//things robot needs to do on startup
 	public void robotInit() {
@@ -113,12 +119,19 @@ public class Robot extends IterativeRobot {
 		//setup gyro
 		dtr.gyro.calibrate();
 		dtr.gyro.reset();
-		enc.setMaxPeriod(.1);
-		enc.setMinRate(10);
-		enc.setDistancePerPulse(0.71);
-		enc.setReverseDirection(true);
-		enc.setSamplesToAverage(7);
-		enc.reset();
+		enc1.setMaxPeriod(.1);
+		enc1.setMinRate(10);
+		enc1.setDistancePerPulse(0.71);
+		enc1.setReverseDirection(true);
+		enc1.setSamplesToAverage(7);
+		enc1.reset();
+		
+		enc2.setMaxPeriod(.1);
+		enc2.setMinRate(10);
+		enc2.setDistancePerPulse(0.71);
+		enc2.setReverseDirection(true);
+		enc2.setSamplesToAverage(7);
+		enc2.reset();
 		
 		//vision code init
 		LED = new Relay(relayPort);
@@ -243,90 +256,92 @@ public class Robot extends IterativeRobot {
 		}
 		SmartDashboard.putNumber("positionCase", positionCase);
 
-		if(directionLift == 0)
+		if(directionLift == 0 && limDown.get() == false)
 		{
 			switch(positionCase) {
 			case 0: 
-				lift.set(0);
+				liftLeft.set(0);
 				break;
 			case 1:
-				if(enc.getDistance() > 0)
-					lift.set(-1);
+				if(enc1.getDistance() > 0)
+					liftLeft.set(-0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 2:
-				if(enc.getDistance() > 20*4)
-					lift.set(-1);
+				if(enc1.getDistance() > 20*4)
+					liftLeft.set(-0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 3:
-				if(enc.getDistance() > 90*4)
-					lift.set(-1);
+				if(enc1.getDistance() > 90*4)
+					liftLeft.set(-0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 4:
-				if(enc.getDistance() > 110*4)
-					lift.set(-1);
+				if(enc1.getDistance() > 110*4)
+					liftLeft.set(-0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			}
 		}
-		if(directionLift == 1)
+		if(directionLift == 1 && limUp.get() == false)
 		{
 			switch(positionCase) {
 			case 2:
-				if(enc.getDistance() < 20*4)
-					lift.set(1);
+				if(enc1.getDistance() < 20*4)
+					liftLeft.set(0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 3:
-				if(enc.getDistance() < 90*4)
-					lift.set(1);
+				if(enc1.getDistance() < 90*4)
+					liftLeft.set(0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 4:
-				if(enc.getDistance() < 110*4)
-					lift.set(1);
+				if(enc1.getDistance() < 110*4)
+					liftLeft.set(0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 5:
-				if(enc.getDistance() < 180*4)
-					lift.set(1);
+				if(enc1.getDistance() < 180*4)
+					liftLeft.set(0.5);
 				else
-					lift.set(0);
+					liftLeft.set(0);
 				break;
 			case 6:
-				lift.set(0);
+				liftLeft.set(0);
 				break;
 			}
 		}
-
+		
 	}
 	
 	public void getEnc() {
 
-		distance = enc.getDistance();
-
-		rate = enc.getRate();
-
-		direction = enc.getDirection();
-
-		stopped = enc.getStopped();
-
-		SmartDashboard.putNumber("distance", distance);
-
-		SmartDashboard.putBoolean("direction",direction);
-
-		SmartDashboard.putNumber("rate",rate);
-
-		SmartDashboard.putBoolean("stopped?",stopped);
+		distance1 = enc1.getDistance();
+		rate1 = enc1.getRate();
+		direction1 = enc1.getDirection();
+		stopped1 = enc1.getStopped();
+		SmartDashboard.putNumber("distance1", distance1);
+		SmartDashboard.putBoolean("direction1",direction1);
+		SmartDashboard.putNumber("rate1",rate1);
+		SmartDashboard.putBoolean("stopped1?",stopped1);
+		
+		distance2 = enc2.getDistance();
+		rate2 = enc2.getRate();
+		direction2 = enc2.getDirection();
+		stopped2 = enc2.getStopped();
+		SmartDashboard.putNumber("distance2", distance2);
+		SmartDashboard.putBoolean("direction2",direction2);
+		SmartDashboard.putNumber("rate2",rate2);
+		SmartDashboard.putBoolean("stopped2?",stopped2);
 
 		
 
