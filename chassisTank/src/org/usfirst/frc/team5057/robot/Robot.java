@@ -119,13 +119,14 @@ public class Robot extends IterativeRobot {
 		//setup gyro
 		dtr.gyro.calibrate();
 		dtr.gyro.reset();
+		
+		//set up encoders
 		enc1.setMaxPeriod(.1);
 		enc1.setMinRate(10);
 		enc1.setDistancePerPulse(0.71);
 		enc1.setReverseDirection(true);
 		enc1.setSamplesToAverage(7);
 		enc1.reset();
-		
 		enc2.setMaxPeriod(.1);
 		enc2.setMinRate(10);
 		enc2.setDistancePerPulse(0.71);
@@ -184,16 +185,66 @@ public class Robot extends IterativeRobot {
 		switch (m_autoSelected) {
 			case kCustomAuto://testing autonomous
 				autoSonar();
+				state=1;
 				break;
 			case kDefaultAuto://nothing right now
-				SmartDashboard.putNumber("centerX",centerX);
-				LED.set(Relay.Value.kForward);
+				measureDistance();
 				break;
 			default:
 				// Put default auto code here
 				break;
 			
 		}Timer.delay(.005);
+	}
+	
+
+	int state = 1;
+	public void measureDistance() {
+		if(dtr.xbox.getRawButton(porting.butA)) {
+			state=1;
+		}
+		switch(state) {
+		case 1:
+			dtr.chassis.arcadeDrive(-.625, 0);
+			state++;
+			break;
+		case 2:
+			Timer.delay(3);
+			state++;
+			break;
+		case 3:
+			dtr.chassis.arcadeDrive(0, 0);
+			state++;
+			break;
+		case 4:
+			if(enc1.getDistance()<80) {
+				liftLeft.set(.5);
+			}else {
+				liftLeft.set(0);
+				state++;
+			}
+			break;
+		case 5:
+			if(dtr.gyro.getAngle()<-90) {
+				state++;
+			}else {
+				dtr.chassis.tankDrive(-.5, .5);
+			}
+			break;
+		case 6:
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 7:
+			Timer.delay(1);
+			state++;
+			break;
+		case 8:
+			dtr.chassis.arcadeDrive(0, 0);
+			state = 1;
+			teleopPeriodic();
+			break;
+		}
 	}
 	
 	//temporary autonomous to drive with sonar
@@ -241,14 +292,12 @@ public class Robot extends IterativeRobot {
 	public void testPeriodic() {}
 	
 	public void buttons() {
-		
 		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
 		{
 			if(positionCase != 0)
 				positionCase--;
 			directionLift = 0;
-		}
-		else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
+		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
 		{
 			if(positionCase != 6)
 				positionCase++;
