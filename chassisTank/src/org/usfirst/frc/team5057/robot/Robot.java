@@ -140,6 +140,7 @@ public class Robot extends IterativeRobot {
 		cam= CameraServer.getInstance().startAutomaticCapture(0);//create new camera instance
 		cam.setResolution(320*2,240*2);//control pixel size
 		visionT=new VisionThread(cam, new GripPipeline(), pipeline -> {
+			while(!VisionThread.interrupted()) {
 			if (!pipeline.filterContoursOutput().isEmpty()) {//check to see if image is there. If image:
 				Rect r1 = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));//left contour
 				Rect r2 = Imgproc.boundingRect(pipeline.filterContoursOutput().get(1));//right contour
@@ -162,7 +163,7 @@ public class Robot extends IterativeRobot {
 	            Timer.delay(0.1);
 	        }
 			
-		});
+		}});
 		visionT.start();
 	}
 
