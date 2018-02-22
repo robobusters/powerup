@@ -369,7 +369,8 @@ public class Robot extends IterativeRobot {
 				break;
 			}
 		}
-		
+		downButton = xbox.getRawButton(porting.butLBumper);
+		upButton = xbox.getRawButton(porting.butRBumper);		
 	}
 	
 	public void getEnc() {
