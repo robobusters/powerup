@@ -103,6 +103,8 @@ public class Robot extends IterativeRobot {
 	DigitalInput limUp = new DigitalInput(limitPortUp);
 	DigitalInput limDown = new DigitalInput(limitPortDown);
 	
+	public float autoTimer;
+	
 	//things robot needs to do on startup
 	public void robotInit() {
 		//choose which autonomous to use
@@ -119,6 +121,8 @@ public class Robot extends IterativeRobot {
 		//setup gyro
 		dtr.gyro.calibrate();
 		dtr.gyro.reset();
+		
+		autoTimer = System.nanoTime();
 		
 		//set up encoders
 		enc1.setMaxPeriod(.1);
@@ -207,11 +211,13 @@ public class Robot extends IterativeRobot {
 		switch(state) {
 		case 1:
 			dtr.chassis.arcadeDrive(-.625, 0);
+			autoTimer = futureTime(3f);
 			state++;
 			break;
 		case 2:
-			Timer.delay(3);
-			state++;
+			if(autoTimer<System.nanoTime()) {
+				state++;
+			}
 			break;
 		case 3:
 			dtr.chassis.arcadeDrive(0, 0);
@@ -234,11 +240,13 @@ public class Robot extends IterativeRobot {
 			break;
 		case 6:
 			dtr.chassis.arcadeDrive(.625, 0);
+			autoTimer = futureTime(1);
 			state++;
 			break;
 		case 7:
-			Timer.delay(1);
-			state++;
+			if(autoTimer<System.nanoTime()) {
+				state++;
+			}
 			break;
 		case 8:
 			dtr.chassis.arcadeDrive(0, 0);
@@ -397,4 +405,8 @@ public class Robot extends IterativeRobot {
 		
 
 	}
+	
+	public long futureTime(float seconds){
+        return System.nanoTime() + (long) (seconds * 1e9);
+    }
 }
