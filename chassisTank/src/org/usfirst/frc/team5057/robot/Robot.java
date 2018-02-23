@@ -204,6 +204,41 @@ public class Robot extends IterativeRobot {
 	
 
 	int state = 1;
+	public void centerAuton(boolean isRight) {
+		if(isRight) {
+			switch(state) {
+			case 1:
+				dtr.chassis.arcadeDrive(.5, 0);
+				autoTimer = futureTime(.666f);
+				state++;
+				break;
+			case 2:
+				if(autoTimer<System.nanoTime()) {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+				}
+				break;
+			case 3:
+				if(dtr.gyro.getAngle()<53) {
+					dtr.chassis.arcadeDrive(0, .5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+				}
+				break;
+				//need new case to move
+			case 4:
+				if(dtr.gyro.getAngle()>90) {
+					dtr.chassis.arcadeDrive(0, -.5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+				}
+				break;
+			}
+		}
+	}
+	
 	public void measureDistance() {
 		if(dtr.xbox.getRawButton(porting.butA)) {
 			state=1;
