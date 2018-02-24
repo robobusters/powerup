@@ -208,33 +208,162 @@ public class Robot extends IterativeRobot {
 		if(isRight) {
 			switch(state) {
 			case 1:
-				dtr.chassis.arcadeDrive(.5, 0);
-				autoTimer = futureTime(.666f);
+				findTime(33);
 				state++;
 				break;
 			case 2:
-				if(autoTimer<System.nanoTime()) {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(driveDistance()) {
 					state++;
 				}
 				break;
 			case 3:
 				if(dtr.gyro.getAngle()<53) {
-					dtr.chassis.arcadeDrive(0, .5);
+					dtr.chassis.tankDrive(-.5,.5);
 				}else {
 					dtr.chassis.arcadeDrive(0, 0);
 					state++;
 				}
 				break;
-				//need new case to move
 			case 4:
-				if(dtr.gyro.getAngle()>90) {
-					dtr.chassis.arcadeDrive(0, -.5);
+				findTime(350);
+				state++;
+				break;
+			case 5:
+				if(driveDistance()) {
+					state++;
+				}
+				break;
+			case 6:
+				if(dtr.gyro.getAngle()>0) {
+					dtr.chassis.tankDrive(.5, -.5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+					findTime(10);
+				}
+				break;
+			case 7:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 8:
+				//lift arm
+				state++;
+				break;
+			case 9:
+				//deposit
+				state++;
+				break;
+			case 10:
+				//drop arm
+				state++;
+				break;
+			case 11:
+				if(dtr.gyro.getAngle()<=90) {
+					dtr.chassis.tankDrive(-.5, .5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					findTime(300);
+					state++;
+				}
+				break;
+			case 12:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 13:
+				if(dtr.gyro.getAngle()>0) {
+					dtr.chassis.tankDrive(.5, -.5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+					findTime(50);
+				}
+				break;
+			case 14:
+				if(driveDistance()) {
+					state++;
+				}break;
+			}
+		}else {
+			switch(state) {
+			case 1:
+				findTime(33);
+				state++;
+				break;
+			case 2:
+				if(driveDistance()) {
+					state++;
+				}
+				break;
+			case 3:
+				if(dtr.gyro.getAngle()>-53) {
+					dtr.chassis.tankDrive(.5,-.5);
 				}else {
 					dtr.chassis.arcadeDrive(0, 0);
 					state++;
 				}
 				break;
+			case 4:
+				findTime(350);
+				state++;
+				break;
+			case 5:
+				if(driveDistance()) {
+					state++;
+				}
+				break;
+			case 6:
+				if(dtr.gyro.getAngle()<0) {
+					dtr.chassis.tankDrive(-.5, +.5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+					findTime(10);
+				}
+				break;
+			case 7:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 8:
+				//lift arm
+				state++;
+				break;
+			case 9:
+				//deposit
+				state++;
+				break;
+			case 10:
+				//drop arm
+				state++;
+				break;
+			case 11:
+				if(dtr.gyro.getAngle()>=-90) {
+					dtr.chassis.tankDrive(.5, -.5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					findTime(300);
+					state++;
+				}
+				break;
+			case 12:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 13:
+				if(dtr.gyro.getAngle()<0) {
+					dtr.chassis.tankDrive(-.5, .5);
+				}else {
+					dtr.chassis.arcadeDrive(0, 0);
+					state++;
+					findTime(50);
+				}
+				break;
+			case 14:
+				if(driveDistance()) {
+					state++;
+				}break;
 			}
 		}
 	}
@@ -444,4 +573,19 @@ public class Robot extends IterativeRobot {
 	public long futureTime(float seconds){
         return System.nanoTime() + (long) (seconds * 1e9);
     }
+	
+	public boolean driveDistance() {
+		if(autoTimer<System.nanoTime()) {
+			dtr.chassis.arcadeDrive(0, 0);
+			return true;
+		}
+		dtr.chassis.arcadeDrive(.625, 0);
+		return false;
+	}
+	public double findTime(double distanceCm) {
+		double averageSpeed = (290-198);//cm/s
+		double time = averageSpeed/distanceCm;
+		autoTimer = futureTime((long)time+'f');
+		return time;
+	}
 }
