@@ -1,0 +1,24 @@
+When testing how far the robot moved at different speeds, we found the following data.
+Though timer based navigation is not favored, the lack of encoders requires this method for
+autonomous. All testing occured while the robot battery was at 12.30V +-.01V
+
+WPLIB speed: .625
+Estimated actual speed (m/s): .92
+
+WPLIB speed: .75
+Estimated actual speed (m/s): 1.66
+
+.625 seemed to work consistently with least drift. This is reccomended speed for navigation during autonomous.
+
+For turning during autonomous, speeds between .5 and .625 worked best with speeds closer to .5 having less drift.
+.5 is the reccommended speed.
+
+
+All data analysis was conducted on polished tile floor. Further testing is required to determing if speeds and drifts remain
+on carpeted floor.
+
+
+
+To avoid this sort of drift, using sonar sensors to fine tune distance when close to target is reccommended. For example,
+if approaching the switch, timers can be used to get close to the scale and then sonar senor to approach the switch to an 
+accurate distance. Encoders can provide more accuracy if they are avaliable. 
