@@ -217,10 +217,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case 3:
-				if(dtr.gyro.getAngle()<53) {
-					dtr.chassis.tankDrive(-.5,.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnRight(53)) {
 					state++;
 				}
 				break;
@@ -234,10 +231,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case 6:
-				if(dtr.gyro.getAngle()>0) {
-					dtr.chassis.tankDrive(.5, -.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnLeft(0)) {
 					state++;
 					findTime(10);
 				}
@@ -259,10 +253,7 @@ public class Robot extends IterativeRobot {
 				state++;
 				break;
 			case 11:
-				if(dtr.gyro.getAngle()<=90) {
-					dtr.chassis.tankDrive(-.5, .5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnRight(90)) {
 					findTime(300);
 					state++;
 				}
@@ -272,10 +263,7 @@ public class Robot extends IterativeRobot {
 					state++;
 				}break;
 			case 13:
-				if(dtr.gyro.getAngle()>0) {
-					dtr.chassis.tankDrive(.5, -.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnLeft(0)) {
 					state++;
 					findTime(50);
 				}
@@ -297,10 +285,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case 3:
-				if(dtr.gyro.getAngle()>-53) {
-					dtr.chassis.tankDrive(.5,-.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnLeft(53)) {
 					state++;
 				}
 				break;
@@ -314,10 +299,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case 6:
-				if(dtr.gyro.getAngle()<0) {
-					dtr.chassis.tankDrive(-.5, +.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnRight(0)) {
 					state++;
 					findTime(10);
 				}
@@ -339,10 +321,7 @@ public class Robot extends IterativeRobot {
 				state++;
 				break;
 			case 11:
-				if(dtr.gyro.getAngle()>=-90) {
-					dtr.chassis.tankDrive(.5, -.5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnLeft(90)) {
 					findTime(300);
 					state++;
 				}
@@ -352,10 +331,7 @@ public class Robot extends IterativeRobot {
 					state++;
 				}break;
 			case 13:
-				if(dtr.gyro.getAngle()<0) {
-					dtr.chassis.tankDrive(-.5, .5);
-				}else {
-					dtr.chassis.arcadeDrive(0, 0);
+				if(dtr.turnRight(0)) {
 					state++;
 					findTime(50);
 				}

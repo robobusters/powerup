@@ -94,6 +94,7 @@ public class DriveTrain {
 		if(xbox.getAButton())mode=1;
 		else if(xbox.getBButton())mode=2;
 		else if(xbox.getXButton())mode=3;
+		else if(xbox.getYButton())mode=4;
 		
 		switch (mode) {
 		case 1://button A does field oriented arcade
@@ -106,7 +107,16 @@ public class DriveTrain {
 			getAccel();
 			break;
 		case 3://button X does tank drive
-			driveTank();
+			getHeading();
+			getDistance();
+			getAccel();
+			chassis.tankDrive(xbox.getRawAxis(porting.rYAxis),xbox.getRawAxis(porting.lXAxis) );
+			break;
+		case 4://button Y drive this like a car
+			chassis.curvatureDrive(leftX, .75*xbox.getRawAxis(porting.rXAxis), false);//cheeeeessssyyyy
+			getHeading();
+			getDistance();
+			getAccel();
 			break;
 		default: break;
 		}
@@ -131,16 +141,6 @@ public class DriveTrain {
 			chassis.arcadeDrive(0, xbox.getRawAxis(porting.rXAxis));
 		}
 		
-	}
-	
-	//drive with tank drive. left and right joysticks
-	public void driveTank() {		
-		getHeading();//update gyr0
-		getDistance();//update sonar
-		getAccel();//update accelrometer
-		
-		//drive
-		chassis.tankDrive(xbox.getRawAxis(porting.rYAxis),xbox.getRawAxis(porting.lXAxis) );
 	}
 	
 	//updates the value of the sonar sensor
@@ -168,5 +168,33 @@ public class DriveTrain {
 		SmartDashboard.putNumber("y accel", accVal[1]);
 		SmartDashboard.putNumber("z accel", accVal[2]);
 		return accVal;
+	}
+	
+	public boolean turnRight(double degrees) {
+		if(degrees>gyro.getAngle()) {
+			chassis.tankDrive(-.5, .5);
+			return false;
+		}
+		chassis.arcadeDrive(0, 0);
+		return true;
+	}
+	
+	public boolean turnLeft(double degrees) {
+		if(-degrees<gyro.getAngle()) {
+			chassis.tankDrive(.5, -.5);
+			return false;
+		}
+		chassis.arcadeDrive(0, 0);
+		return true;
+	}
+	
+	public boolean driveUntil(double inches) {
+		getDistance();
+		if(currentDistance1==inches||currentDistance1==inches) {
+			chassis.arcadeDrive(0, 0);
+			return true;
+		}
+		chassis.arcadeDrive(.625, 0);
+		return false;
 	}
 }
