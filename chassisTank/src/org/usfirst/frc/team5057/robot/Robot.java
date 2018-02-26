@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -46,6 +47,9 @@ import edu.wpi.first.wpilibj.vision.VisionThread;
 public class Robot extends IterativeRobot {
 	private static final String kDefaultAuto = "Default";
 	private static final String kCustomAuto = "My Auto";
+	private static final String center = "Center Auto";
+	private static final String left = "Left Auto";
+	private static final String right = "Right Auto";
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	
@@ -110,6 +114,9 @@ public class Robot extends IterativeRobot {
 		//choose which autonomous to use
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
+		m_chooser.addObject("Center Auto", center);
+		m_chooser.addObject("Right Auto", right);
+		m_chooser.addObject("Left Auto", left);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
 		//setup drivetrain
@@ -187,6 +194,8 @@ public class Robot extends IterativeRobot {
 	/**This function is called periodically during autonomous.**/
 	@Override
 	public void autonomousPeriodic() { 
+		String gameData;
+		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		switch (m_autoSelected) {
 			case kCustomAuto://testing autonomous
 				autoSonar();
@@ -194,6 +203,19 @@ public class Robot extends IterativeRobot {
 				break;
 			case kDefaultAuto://nothing right now
 				measureDistance();
+				break;
+			case center:
+				if(gameData.length()>0) {
+					if(gameData.charAt(0)=='L') {
+						centerAuton(false);
+					}else {
+						centerAuton(true);
+					}
+				}
+				break;
+			case left:
+				break;
+			case right:
 				break;
 			default:
 				// Put default auto code here
