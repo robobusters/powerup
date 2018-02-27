@@ -7,11 +7,11 @@ public class JoystickLocations {
 		final int joystickPort=0;
 		final int startButton=9;
 		
-		final int lXAxis=1;//left is -1 right is 1
-		final int lYAxis=0;//up is -1 down is 1
+		final int lXAxis=0;//left is -1 right is 1
+		final int lYAxis=1;//up is -1 down is 1
 		final int lTrigger = 2;//0 is idle 1 is pressed
 		final int rXAxis=4;//left is -1 right is 1
-		final int rYAxis = 5;//up is -1 down is 1
+		final int rYAxis = 5;//up is -1 down is 1  CORRECT
 		final int rTrigger=3;//0 is idle 1 is pressed
 		
 	final int butA=1;

@@ -119,6 +119,7 @@ public class Robot extends IterativeRobot {
 		m_chooser.addObject("Left Auto", left);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
+		leftMotor.setInverted(true);
 		//setup drivetrain
 		chassis = new DifferentialDrive(leftMotor, rightMotor);
 		chassis.setExpiration(.1);

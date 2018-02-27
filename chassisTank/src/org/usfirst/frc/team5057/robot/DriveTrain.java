@@ -45,7 +45,7 @@ public class DriveTrain {
 	}
 	
 	public void updateAxes() {
-		leftY=-xbox.getRawAxis(porting.lYAxis);
+		leftY=xbox.getRawAxis(porting.lYAxis);
 		leftX=xbox.getRawAxis(porting.lXAxis);
 		rightX=xbox.getRawAxis(porting.rXAxis);
 		rightY=xbox.getRawAxis(porting.rYAxis);
@@ -101,7 +101,7 @@ public class DriveTrain {
 			driveArcade();
 			break;
 		case 2://button B does just arcade
-			chassis.arcadeDrive(leftX, .75*xbox.getRawAxis(porting.rXAxis));
+			chassis.arcadeDrive(-xbox.getRawAxis(porting.lYAxis),-xbox.getRawAxis(porting.lXAxis));
 			getHeading();
 			getDistance();
 			getAccel();
@@ -110,10 +110,10 @@ public class DriveTrain {
 			getHeading();
 			getDistance();
 			getAccel();
-			chassis.tankDrive(xbox.getRawAxis(porting.rYAxis),xbox.getRawAxis(porting.lXAxis) );
+			chassis.tankDrive(-xbox.getRawAxis(porting.rYAxis),-xbox.getRawAxis(porting.lYAxis) );
 			break;
 		case 4://button Y drive this like a car
-			chassis.curvatureDrive(leftX, .75*xbox.getRawAxis(porting.rXAxis), false);//cheeeeessssyyyy
+			chassis.curvatureDrive(-xbox.getRawAxis(porting.lYAxis),-xbox.getRawAxis(porting.rXAxis) , false);//cheeeeessssyyyy
 			getHeading();
 			getDistance();
 			getAccel();
@@ -135,10 +135,10 @@ public class DriveTrain {
 		leftY = -leftX*Math.sin(radians) + leftY*Math.cos(radians);
 		leftX=temp;
 						
-		chassis.arcadeDrive(this.dampen*leftX, this.dampen*leftY);//drive
+		chassis.arcadeDrive( -this.dampen*leftY, -this.dampen*leftX);//drive
 		
 		if(Math.abs(xbox.getRawAxis(porting.rXAxis)) > .25) {
-			chassis.arcadeDrive(0, xbox.getRawAxis(porting.rXAxis));
+			chassis.arcadeDrive(0, -xbox.getRawAxis(porting.rXAxis));
 		}
 		
 	}
