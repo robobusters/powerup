@@ -184,11 +184,14 @@ public class Robot extends IterativeRobot {
 	 * the switch structure below with additional strings. If using the
 	 * SendableChooser make sure to add them to the chooser code above as well.
 	 */
+
+	int state = 1;
 	@Override
 	public void autonomousInit() {
 		m_autoSelected = m_chooser.getSelected();
 		System.out.println("Auto selected: " + m_autoSelected);
 		dtr.chassis.setSafetyEnabled(true);
+		state = 1;
 		//This is default code we use to choose an autonomous
 	}
 
@@ -199,8 +202,7 @@ public class Robot extends IterativeRobot {
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		switch (m_autoSelected) {
 			case kCustomAuto://testing autonomous
-				autoSonar();
-				state=1;
+				testMethods();
 				break;
 			case kDefaultAuto://nothing right now
 				measureDistance();
@@ -215,8 +217,22 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case left:
+				if(gameData.length()>0) {
+					if(gameData.charAt(0)=='L') {
+						leftAuton(false);
+					}else {
+						leftAuton(true);
+					}
+				}
 				break;
 			case right:
+				if(gameData.length()>0) {
+					if(gameData.charAt(0)=='L') {
+						rightAuton(false);
+					}else {
+						rightAuton(true);
+					}
+				}
 				break;
 			default:
 				// Put default auto code here
@@ -225,8 +241,162 @@ public class Robot extends IterativeRobot {
 		}Timer.delay(.005);
 	}
 	
+	public void leftAuton(boolean isRight) {
+		if(isRight) {
+			switch(state) {
+			case 1:
+				findTime(550);
+				state++;
+				break;
+			case 2:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 3:
+				break;
+			}
+		}else {
+			switch(state) {
+			case 1:
+				if(dtr.turnRight(10)) {
+					state++;
+				}break;
+			case 2:
+				findTime(375);
+				state++;
+				break;
+			case 3:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 4:
+				findTime(-15);
+				state++;
+				break;
+			case 5:
+				if(driveDistance()) {
+					state++;
+				}
+				break;
+			case 6:
+				//lift arm
+				state++;
+				break;
+			case 7:
+				//out take
+				state++;
+				break;
+			case 8:
+				//drop arm
+				state++;
+				break;
+			case 9:
+				state++;
+				break;
+			case 10:
+				state++;
+				break;
+			case 11:
+				if(dtr.turnLeft(90)) {
+					findTime(225);
+					state++;
+				}
+				break;
+			case 12:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 13:
+				if(dtr.turnRight(0)) {
+					state++;
+					findTime(50);
+				}
+				break;
+			case 14:
+				if(driveDistance()) {
+					state++;
+				}break;
+			}
+		}
+	}
 
-	int state = 1;
+	public void rightAuton(boolean isRight) {
+		if(!isRight) {
+			switch(state) {
+			case 1:
+				findTime(550);
+				state++;
+				break;
+			case 2:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 3:
+				break;
+			}
+		}else {
+			switch(state) {
+			case 1:
+				state++; break;
+			case 2:
+				findTime(375);
+				state++;
+				break;
+			case 3:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 4:
+				findTime(-15);
+				state++;
+				break;
+			case 5:
+				if(driveDistance()) {
+					state++;
+				}
+				break;
+			case 6:
+				//lift arm
+				state++;
+				break;
+			case 7:
+				//out take
+				state++;
+				break;
+			case 8:
+				//drop arm
+				state++;
+				break;
+			case 9:
+				state++;
+				break;
+			case 10:
+				state++;
+				break;
+			case 11:
+				if(dtr.turnRight(90)) {
+					findTime(225);
+					state++;
+				}
+				break;
+			case 12:
+				if(driveDistance()) {
+					state++;
+				}break;
+			case 13:
+				if(dtr.turnLeft(0)) {
+					state++;
+					findTime(50);
+				}
+				break;
+			case 14:
+				if(driveDistance()) {
+					state++;
+				}break;
+			}
+		}
+	}
+	
 	public void centerAuton(boolean isRight) {
 		if(isRight) {
 			switch(state) {
@@ -277,7 +447,7 @@ public class Robot extends IterativeRobot {
 				break;
 			case 11:
 				if(dtr.turnRight(90)) {
-					findTime(300);
+					findTime(225);
 					state++;
 				}
 				break;
@@ -345,7 +515,7 @@ public class Robot extends IterativeRobot {
 				break;
 			case 11:
 				if(dtr.turnLeft(90)) {
-					findTime(300);
+					findTime(225);
 					state++;
 				}
 				break;
@@ -368,9 +538,6 @@ public class Robot extends IterativeRobot {
 	}
 	
 	public void measureDistance() {
-		if(dtr.xbox.getRawButton(porting.butA)) {
-			state=1;
-		}
 		switch(state) {
 		case 1:
 			dtr.chassis.arcadeDrive(-.625, 0);
@@ -386,35 +553,17 @@ public class Robot extends IterativeRobot {
 			dtr.chassis.arcadeDrive(0, 0);
 			state++;
 			break;
-		case 4:
-			if(enc1.getDistance()<80) {
-				liftLeft.set(.5);
-			}else {
-				liftLeft.set(0);
-				state++;
-			}
-			break;
-		case 5:
-			if(dtr.gyro.getAngle()<-90) {
-				state++;
-			}else {
-				dtr.chassis.tankDrive(-.5, .5);
-			}
-			break;
-		case 6:
-			dtr.chassis.arcadeDrive(.625, 0);
-			autoTimer = futureTime(1);
+		}
+	}
+	
+	public void testMethods() {
+		switch(state) {
+		case 1:
+			findTime(100);
 			state++;
 			break;
-		case 7:
-			if(autoTimer<System.nanoTime()) {
-				state++;
-			}
-			break;
-		case 8:
-			dtr.chassis.arcadeDrive(0, 0);
-			state = 1;
-			teleopPeriodic();
+		case 2:
+			if(driveDistance())state++;
 			break;
 		}
 	}
@@ -426,14 +575,6 @@ public class Robot extends IterativeRobot {
 		dtr.getDistance();
 		dtr.getAccel();
 		dtr.updateAxes();
-			
-		/*if (Math.round(currentDistance1)!=Math.round(currentDistance2)) {
-		if (currentDistance1>currentDistance2) {
-			rightMotor.set(.2);
-		}else if (currentDistance1>currentDistance2) {
-			leftMotor.set(-.2);
-		}}*/
-		//else {
 		if(dtr.currentDistance1>18) {//if the robot is more than 18 inches from the wall
 			SmartDashboard.putNumber("AutoDriveOn",0);//say robot  moving
 			dtr.chassis.arcadeDrive(.5, 0);
