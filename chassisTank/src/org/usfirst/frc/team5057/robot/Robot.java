@@ -101,6 +101,10 @@ public class Robot extends IterativeRobot {
 	boolean stopped1;
 	boolean stopped2;
 	
+	Talon leftIn = new Talon(intakePortL);
+	Talon rightIn = new Talon(intakePortR);
+	SpeedControllerGroup intake;
+	
 	//limit switches
 	final int limitPortUp = 4;
 	final int limitPortDown = 5;
@@ -125,6 +129,9 @@ public class Robot extends IterativeRobot {
 		chassis.setExpiration(.1);
 		chassis.setSafetyEnabled(false);
 		dtr = new DriveTrain(chassis, xbox, porting);
+		
+		rightIn.setInverted(true);
+		intake = new SpeedControllerGroup(leftIn, rightIn);
 		
 		//setup gyro
 		dtr.gyro.calibrate();
@@ -596,7 +603,13 @@ public class Robot extends IterativeRobot {
 		LED.set(Relay.Value.kForward);
 		getEnc();
 		buttons();
-		//teleopLift();
+
+
+		if(xbox.getRawAxis(porting.lTrigger)>.2) {
+			intake.set(xbox.getTriggerAxis(Hand.kLeft));
+		}else if (xbox.getRawAxis(porting.rTrigger)>.2) {
+			intake.set(-xbox.getTriggerAxis(Hand.kRight));
+		}
 		
 	}
 	
@@ -728,4 +741,5 @@ public class Robot extends IterativeRobot {
 		autoTimer = futureTime((long)time+'f');
 		return time;
 	}
+	
 }

@@ -18,11 +18,11 @@ public class JoystickLocations {
 	final int butB=3;
 	final int butX=2;
 	final int butY=0;
-	final int butdpDown=4;
+	/*final int butdpDown=4;
 	final int butdpUp=5;
 	final int butdpLeft=6;
-	final int butdpRight=7;
-	final int butLBumper=8;
-	final int butRBumper=9;
+	final int butdpRight=7;*/
+	final int butLBumper=5;
+	final int butRBumper=6;
 	
 }
