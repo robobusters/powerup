@@ -83,9 +83,11 @@ public class Robot extends IterativeRobot {
 	int directionLift = 0;
 	boolean upButton = false;
 	boolean downButton = false;
-	int positionCase = 0;
+	int positionCase = 1;
 	Victor liftLeft = new Victor(liftPortL);
 	Victor liftRight = new Victor(liftPortR);
+	Victor intakeLeft = new Victor(intakePortL);
+	Victor intakeRight = new Victor(intakePortR);
 	int encoderPort1 = 0;
 	int encoderPort2 = 1;
 	int encoderPort3 = 2;
@@ -101,8 +103,6 @@ public class Robot extends IterativeRobot {
 	boolean stopped1;
 	boolean stopped2;
 	
-	Talon leftIn = new Talon(intakePortL);
-	Talon rightIn = new Talon(intakePortR);
 	SpeedControllerGroup intake;
 	
 	//limit switches
@@ -123,15 +123,17 @@ public class Robot extends IterativeRobot {
 		m_chooser.addObject("Left Auto", left);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
-		leftMotor.setInverted(true);
+		rightMotor.setInverted(false);
 		//setup drivetrain
 		chassis = new DifferentialDrive(leftMotor, rightMotor);
 		chassis.setExpiration(.1);
 		chassis.setSafetyEnabled(false);
 		dtr = new DriveTrain(chassis, xbox, porting);
 		
-		rightIn.setInverted(true);
-		intake = new SpeedControllerGroup(leftIn, rightIn);
+		liftLeft.setInverted(true);
+		
+		intakeRight.setInverted(true);
+		intake = new SpeedControllerGroup(intakeLeft, intakeRight);
 		
 		//setup gyro
 		dtr.gyro.calibrate();
@@ -143,13 +145,13 @@ public class Robot extends IterativeRobot {
 		enc1.setMaxPeriod(.1);
 		enc1.setMinRate(10);
 		enc1.setDistancePerPulse(0.71);
-		enc1.setReverseDirection(true);
+		enc1.setReverseDirection(false);
 		enc1.setSamplesToAverage(7);
 		enc1.reset();
 		enc2.setMaxPeriod(.1);
 		enc2.setMinRate(10);
 		enc2.setDistancePerPulse(0.71);
-		enc2.setReverseDirection(true);
+		enc2.setReverseDirection(false);
 		enc2.setSamplesToAverage(7);
 		enc2.reset();
 		
@@ -279,6 +281,7 @@ public class Robot extends IterativeRobot {
 			case 4:
 				findTime(-15);
 				state++;
+
 				break;
 			case 5:
 				if(driveDistance()) {
@@ -286,16 +289,38 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 			case 6:
-				//lift arm
+				if(enc1.getDistance() < 20*4 && limUp.get() == false)
+				{
+				liftLeft.set(0.5);
+				liftRight.set(0.5);
+				}
+			else
+				{
+				liftLeft.set(0);
+				liftRight.set(0);
 				state++;
+				}
 				break;
 			case 7:
-				//out take
-				state++;
+				intake.set(-1);
+				if(autoTimer < System.nanoTime()) {
+					state++;
+					intake.set(0);}
 				break;
 			case 8:
 				//drop arm
+				if(enc1.getDistance() > 20*4 && limDown.get() == false)
+				{
+				liftLeft.set(-0.5);
+				liftRight.set(-0.5);
+				}
+			else
+				{
+				liftLeft.set(0);
+				liftRight.set(0);
 				state++;
+				autoTimer=futureTime(1.5f);
+				}
 				break;
 			case 9:
 				state++;
@@ -547,17 +572,17 @@ public class Robot extends IterativeRobot {
 	public void measureDistance() {
 		switch(state) {
 		case 1:
-			dtr.chassis.arcadeDrive(-.625, 0);
-			autoTimer = futureTime(3f);
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(.625, 0);
 			state++;
 			break;
 		case 2:
-			if(autoTimer<System.nanoTime()) {
-				state++;
-			}
+			Timer.delay(5);
+			state++;
 			break;
 		case 3:
 			dtr.chassis.arcadeDrive(0, 0);
+			dtr.chassis.setSafetyEnabled(true);
 			state++;
 			break;
 		}
@@ -604,13 +629,13 @@ public class Robot extends IterativeRobot {
 		getEnc();
 		buttons();
 
-
 		if(xbox.getRawAxis(porting.lTrigger)>.2) {
-			intake.set(xbox.getTriggerAxis(Hand.kLeft));
+			intake.set(.3*-xbox.getTriggerAxis(Hand.kLeft));
 		}else if (xbox.getRawAxis(porting.rTrigger)>.2) {
-			intake.set(-xbox.getTriggerAxis(Hand.kRight));
+			intake.set(1*xbox.getTriggerAxis(Hand.kRight));
 		}
-		
+		else
+			intake.set(0);
 	}
 	
 	/**This function is called periodically during test mode**/
@@ -620,78 +645,129 @@ public class Robot extends IterativeRobot {
 	public void buttons() {
 		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
 		{
-			if(positionCase != 0)
+			if(positionCase != 1)
 				positionCase--;
 			directionLift = 0;
 		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
 		{
-			if(positionCase != 6)
+			if(positionCase != 3)
 				positionCase++;
 			directionLift = 1;
 		}
 		SmartDashboard.putNumber("positionCase", positionCase);
 
-		if(directionLift == 0 && limDown.get() == false)
+		if(directionLift == 0)
 		{
 			switch(positionCase) {
 			case 0: 
 				liftLeft.set(0);
+				liftRight.set(0);
 				break;
 			case 1:
-				if(enc1.getDistance() > 0)
-					liftLeft.set(-0.5);
+				if(enc1.getDistance() > 0 && limDown.get() == false) 
+					{
+					liftLeft.set(-0.25);
+					liftRight.set(-0.25);
+					}
+					
 				else
+					{
 					liftLeft.set(0);
-				break;
+					liftRight.set(0);
+					}
+					break;
 			case 2:
-				if(enc1.getDistance() > 20*4)
-					liftLeft.set(-0.5);
+				if(enc1.getDistance() > 4*4 && limDown.get() == false)
+					{
+					liftLeft.set(-0.25);
+					liftRight.set(-0.25);
+					}
 				else
+					{
 					liftLeft.set(0);
-				break;
+					liftRight.set(0);
+					}
+					break;
 			case 3:
-				if(enc1.getDistance() > 90*4)
-					liftLeft.set(-0.5);
+				if(enc1.getDistance() > 10*4 && limDown.get() == false)
+					{
+					liftLeft.set(-0.25);
+					liftRight.set(-0.25);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			case 4:
-				if(enc1.getDistance() > 110*4)
-					liftLeft.set(-0.5);
+				if(enc1.getDistance() > 110*4 && limDown.get() == false)
+					{	
+					liftLeft.set(-0.25);
+					liftRight.set(-0.25);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			}
 		}
-		if(directionLift == 1 && limUp.get() == false)
+		if(directionLift == 1)
 		{
 			switch(positionCase) {
 			case 2:
-				if(enc1.getDistance() < 20*4)
-					liftLeft.set(0.5);
+				if(enc1.getDistance() < 4*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			case 3:
-				if(enc1.getDistance() < 90*4)
-					liftLeft.set(0.5);
+				if(enc1.getDistance() < 10*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			case 4:
-				if(enc1.getDistance() < 110*4)
-					liftLeft.set(0.5);
+				if(enc1.getDistance() < 110*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			case 5:
-				if(enc1.getDistance() < 180*4)
-					liftLeft.set(0.5);
+				if(enc1.getDistance() < 180*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
 				else
+					{
 					liftLeft.set(0);
+					liftRight.set(0);
+					}
 				break;
 			case 6:
 				liftLeft.set(0);
+				liftRight.set(0);
 				break;
 			}
 		}

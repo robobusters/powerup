@@ -3,6 +3,7 @@ package org.usfirst.frc.team5057.robot;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -94,14 +95,20 @@ public class DriveTrain {
 		if(xbox.getAButton())mode=1;
 		else if(xbox.getBButton())mode=2;
 		else if(xbox.getXButton())mode=3;
-		else if(xbox.getYButton())mode=4;
+		if(xbox.getYButton()) {
+			dampen = Math.sqrt(.5);
+		}
+		else
+			dampen = 1;
+		
+		
 		
 		switch (mode) {
 		case 1://button A does field oriented arcade
 			driveArcade();
 			break;
 		case 2://button B does just arcade
-			chassis.arcadeDrive(-xbox.getRawAxis(porting.lYAxis),-xbox.getRawAxis(porting.lXAxis));
+			chassis.arcadeDrive(dampen*-xbox.getRawAxis(porting.lYAxis),dampen*xbox.getRawAxis(porting.lXAxis));
 			getHeading();
 			getDistance();
 			getAccel();
@@ -110,10 +117,10 @@ public class DriveTrain {
 			getHeading();
 			getDistance();
 			getAccel();
-			chassis.tankDrive(-xbox.getRawAxis(porting.rYAxis),-xbox.getRawAxis(porting.lYAxis) );
+			chassis.tankDrive(dampen*-xbox.getRawAxis(porting.rYAxis),dampen*-xbox.getRawAxis(porting.lYAxis) );
 			break;
 		case 4://button Y drive this like a car
-			chassis.curvatureDrive(-xbox.getRawAxis(porting.lYAxis),-xbox.getRawAxis(porting.rXAxis) , false);//cheeeeessssyyyy
+			chassis.curvatureDrive(dampen*-xbox.getRawAxis(porting.lYAxis),dampen*-xbox.getRawAxis(porting.rXAxis) , false);//cheeeeessssyyyy
 			getHeading();
 			getDistance();
 			getAccel();
@@ -135,10 +142,10 @@ public class DriveTrain {
 		leftY = -leftX*Math.sin(radians) + leftY*Math.cos(radians);
 		leftX=temp;
 						
-		chassis.arcadeDrive( -this.dampen*leftY, -this.dampen*leftX);//drive
+		chassis.arcadeDrive( -dampen*leftY, dampen*leftX);//drive
 		
 		if(Math.abs(xbox.getRawAxis(porting.rXAxis)) > .25) {
-			chassis.arcadeDrive(0, -xbox.getRawAxis(porting.rXAxis));
+			chassis.arcadeDrive(0, dampen*xbox.getRawAxis(porting.rXAxis));
 		}
 		
 	}
