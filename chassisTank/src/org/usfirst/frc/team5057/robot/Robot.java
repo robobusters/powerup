@@ -45,7 +45,7 @@ import edu.wpi.first.wpilibj.vision.VisionThread;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private static final String kDefaultAuto = "Default";
+	private static final String driveStraightAuto = "Drive Straight Auto";
 	private static final String kCustomAuto = "My Auto";
 	private static final String center = "Center Auto";
 	private static final String left = "Left Auto";
@@ -116,7 +116,7 @@ public class Robot extends IterativeRobot {
 	//things robot needs to do on startup
 	public void robotInit() {
 		//choose which autonomous to use
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
+		m_chooser.addDefault("Drive Straight Auto", driveStraightAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		m_chooser.addObject("Center Auto", center);
 		m_chooser.addObject("Right Auto", right);
@@ -133,6 +133,8 @@ public class Robot extends IterativeRobot {
 		liftLeft.setInverted(true);
 		
 		intakeRight.setInverted(true);
+		intakeRight.setSafetyEnabled(false);
+		intakeLeft.setSafetyEnabled(false);
 		intake = new SpeedControllerGroup(intakeLeft, intakeRight);
 		
 		//setup gyro
@@ -213,41 +215,543 @@ public class Robot extends IterativeRobot {
 			case kCustomAuto://testing autonomous
 				testMethods();
 				break;
-			case kDefaultAuto://nothing right now
-				measureDistance();
+			case driveStraightAuto://nothing right now
+				driveStraight();
 				break;
 			case center:
-				if(gameData.length()>0) {
+				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						centerAuton(false);
 					}else {
 						centerAuton(true);
 					}
-				}
+				}*/
 				break;
 			case left:
-				if(gameData.length()>0) {
+				leftSwerve();
+				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						leftAuton(false);
 					}else {
 						leftAuton(true);
 					}
-				}
+				}*/
 				break;
 			case right:
-				if(gameData.length()>0) {
+				rightSwerve();
+				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						rightAuton(false);
 					}else {
 						rightAuton(true);
 					}
-				}
+				}*/
 				break;
 			default:
 				// Put default auto code here
 				break;
 			
 		}Timer.delay(.005);
+	}
+	
+	
+	public void driveStraight() {
+		switch(state) {
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 2:
+			Timer.delay(5);
+			state++;
+			break;
+		case 3:
+			dtr.chassis.arcadeDrive(0, 0);
+			dtr.chassis.setSafetyEnabled(true);
+			state++;
+			break;
+		}
+	}
+	
+	public void leftSwerve() {
+		switch(state) {
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(.625, 0);
+			intake.set(.15);
+			state++;
+			break;
+		case 2:
+			Timer.delay(5);
+			state++;
+			break;
+		case 3:
+			if(dtr.turnRight(180)) {
+				state++;
+				dtr.chassis.arcadeDrive(0, 0);
+			}
+			break;
+		case 4:
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 5:
+			Timer.delay(5);
+			state++;
+			break;
+		case 6:
+			dtr.chassis.arcadeDrive(-.625, 0);//73.6 cm/s
+			state++;
+			break;
+		case 7:
+			Timer.delay(1);
+			state++;
+			break;
+		case 8:
+			if(dtr.gyro.getAngle()<90) {
+				dtr.chassis.arcadeDrive(0, 0);
+				state++;
+			}else {
+				dtr.chassis.tankDrive(-.5, .5);
+			}
+			break;
+		case 9:
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 10:
+			Timer.delay(3.988);
+			state++;
+			break;
+		case 11:
+			dtr.chassis.arcadeDrive(0, 0);
+			Timer.delay(.5);
+			break;
+		case 12:
+			if(dtr.gyro.getAngle()>180) {
+				dtr.chassis.arcadeDrive(0, 0);
+				state++;
+			}else {
+				dtr.chassis.tankDrive(.5, -.5);
+			}
+		case 13:
+			if(enc1.getDistance() < firstAngle && limUp.get() == false)
+			{
+				liftLeft.set(liftSpeed);
+				liftRight.set(liftSpeed);
+			}
+			else
+			{
+				liftLeft.set(idleSpeed);
+				liftRight.set(idleSpeed);
+				state++;
+			}
+			break;
+		case 14:
+			dtr.chassis.arcadeDrive(.625, 0);
+			Timer.delay(1);
+			state++;
+			break;
+		case 15:
+			intake.set(outtakeSpeed);
+			Timer.delay(2);
+			state++;
+			break;
+		case 16:
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(1);
+			intake.set(0);
+			//Timer.delay(3.831521739);
+			state++;
+			break;
+		case 17:
+			if(enc1.getDistance() > 0 && limDown.get() == false) 
+			{
+			liftLeft.set(-dropSpeed);
+			liftRight.set(-dropSpeed);
+			}
+			
+			else
+			{
+				liftLeft.set(0);
+				liftRight.set(0);
+				intake.set(0);
+				chassis.setSafetyEnabled(true);
+				state++;
+			}
+			break;
+		/*case 17:
+			if(dtr.gyro.getAngle()<90) {
+				dtr.chassis.arcadeDrive(0, 0);
+				intake.set(intakeSpeed);
+				state++;
+			}else {
+				dtr.chassis.tankDrive(-.5, .5);
+			}
+		case 18:
+			if(enc1.getDistance() < secondAngle && limUp.get() == false)
+			{
+				liftLeft.set(liftSpeed);
+				liftRight.set(liftSpeed);
+			}
+			else
+			{
+				liftLeft.set(idleSpeed);
+				liftRight.set(idleSpeed);
+				state++;
+			}
+			break;
+		case 19:
+			Timer.delay(1);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(1);
+			dtr.chassis.arcadeDrive(0, 0);
+			state++;
+			break;
+		case 20:
+			if(enc1.getDistance() > 0 && limDown.get() == false) 
+			{
+			liftLeft.set(-dropSpeed);
+			liftRight.set(-dropSpeed);
+			}
+			
+			else
+			{
+				liftLeft.set(0);
+				liftRight.set(0);
+				intake.set(0);
+				chassis.setSafetyEnabled(true);
+				state++;
+			}
+			break;*/
+		}
+	}
+	
+	
+	public void rightSwerve() {
+		switch(state) {
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(.625, 0);
+			intake.set(.15);
+			state++;
+			break;
+		case 2:
+			Timer.delay(5);
+			state++;
+			break;
+		case 3:
+			if(dtr.turnRight(180)) {
+				state++;
+				dtr.chassis.arcadeDrive(0, 0);
+			}
+			break;
+		case 4:
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 5:
+			Timer.delay(5);
+			state++;
+			break;
+		case 6:
+			dtr.chassis.arcadeDrive(-.625, 0);//73.6 cm/s
+			state++;
+			break;
+		case 7:
+			Timer.delay(1);
+			state++;
+			break;
+		case 8:
+			if(dtr.gyro.getAngle()>270) {
+				dtr.chassis.arcadeDrive(0, 0);
+				state++;
+			}else {
+				dtr.chassis.tankDrive(.5, -.5);
+			}
+			break;
+		case 9:
+			dtr.chassis.arcadeDrive(.625, 0);
+			state++;
+			break;
+		case 10:
+			Timer.delay(4.416337);
+			state++;
+			break;
+		case 11:
+			dtr.chassis.arcadeDrive(0, 0);
+			Timer.delay(.5);
+			break;
+		case 12:
+			if(dtr.gyro.getAngle()<180) {
+				dtr.chassis.arcadeDrive(0, 0);
+				state++;
+			}else {
+				dtr.chassis.tankDrive(-.5, +.5);
+			}
+		case 13:
+			if(enc1.getDistance() < firstAngle && limUp.get() == false)
+			{
+				liftLeft.set(liftSpeed);
+				liftRight.set(liftSpeed);
+			}
+			else
+			{
+				liftLeft.set(idleSpeed);
+				liftRight.set(idleSpeed);
+				state++;
+			}
+			break;
+		case 14:
+			dtr.chassis.arcadeDrive(.625, 0);
+			Timer.delay(1);
+			state++;
+			break;
+		case 15:
+			intake.set(outtakeSpeed);
+			Timer.delay(2);
+			state++;
+			break;
+		case 16:
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(1);
+			intake.set(0);
+			//Timer.delay(3.831521739);
+			state++;
+			break;
+		case 17:
+			if(enc1.getDistance() > 0 && limDown.get() == false) 
+			{
+			liftLeft.set(-dropSpeed);
+			liftRight.set(-dropSpeed);
+			}
+			
+			else
+			{
+				liftLeft.set(0);
+				liftRight.set(0);
+				intake.set(0);
+				chassis.setSafetyEnabled(true);
+				state++;
+			}
+			break;
+		}
+	}
+	
+	public void testMethods() {
+		switch(state) {
+		case 1:
+			findTime(100);
+			state++;
+			break;
+		case 2:
+			if(driveDistance())state++;
+			break;
+		}
+	}
+	
+	/**This function is called periodically during operator control.*/
+	double intakeSpeed=.35;
+	double outtakeSpeed=1;
+	@Override
+	public void teleopPeriodic() {
+		dtr.chassis.setSafetyEnabled(true);
+		dtr.changeDrive();
+		dtr.updateAxes();
+		LED.set(Relay.Value.kForward);
+		getEnc();
+		buttons();
+
+		if(xbox.getRawAxis(porting.lTrigger)>.2) {
+			intake.set(intakeSpeed*-xbox.getTriggerAxis(Hand.kLeft));
+		}else if (xbox.getRawAxis(porting.rTrigger)>.2) {
+			intake.set(outtakeSpeed*xbox.getTriggerAxis(Hand.kRight));
+		}
+		else
+			intake.set(0);
+	}
+	
+	/**This function is called periodically during test mode**/
+	@Override
+	public void testPeriodic() {}
+	
+	double firstAngle=4*4;
+	double secondAngle=10*4;
+	double dropSpeed = .25;
+	double liftSpeed = .75;
+	double idleSpeed = .1;
+	public void buttons() {
+		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
+		{
+			if(positionCase != 1)
+				positionCase--;
+			directionLift = 0;
+		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
+		{
+			if(positionCase != 3)
+				positionCase++;
+			directionLift = 1;
+		}
+		SmartDashboard.putNumber("positionCase", positionCase);
+
+		if(directionLift == 0)
+		{
+			switch(positionCase) {
+			case 0: 
+				liftLeft.set(0);
+				liftRight.set(0);
+				break;
+			case 1:
+				if(enc1.getDistance() > 0 && limDown.get() == false) 
+					{
+					liftLeft.set(-dropSpeed);
+					liftRight.set(-dropSpeed);
+					}
+					
+				else
+					{
+					liftLeft.set(0);
+					liftRight.set(0);
+					}
+					break;
+			case 2:
+				if(enc1.getDistance() > firstAngle && limDown.get() == false)
+					{
+					liftLeft.set(-dropSpeed);
+					liftRight.set(-dropSpeed);
+					}
+				else
+					{
+					liftLeft.set(idleSpeed);
+					liftRight.set(idleSpeed);
+					}
+					break;
+			case 3:
+				if(enc1.getDistance() > secondAngle && limDown.get() == false)
+					{
+					liftLeft.set(-dropSpeed);
+					liftRight.set(-dropSpeed);
+					}
+				else
+					{
+					liftLeft.set(idleSpeed);
+					liftRight.set(idleSpeed);
+					}
+				break;
+			case 4:
+				if(enc1.getDistance() > 110*4 && limDown.get() == false)
+					{	
+					liftLeft.set(-0.25);
+					liftRight.set(-0.25);
+					}
+				else
+					{
+					liftLeft.set(0);
+					liftRight.set(0);
+					}
+				break;
+			}
+		}
+		if(directionLift == 1)
+		{
+			switch(positionCase) {
+			case 2:
+				if(enc1.getDistance() < firstAngle && limUp.get() == false)
+					{
+					liftLeft.set(liftSpeed);
+					liftRight.set(liftSpeed);
+					}
+				else
+					{
+					liftLeft.set(idleSpeed);
+					liftRight.set(idleSpeed);
+					}
+				break;
+			case 3:
+				if(enc1.getDistance() < secondAngle && limUp.get() == false)
+					{
+					liftLeft.set(liftSpeed);
+					liftRight.set(liftSpeed);
+					}
+				else
+					{
+					liftLeft.set(idleSpeed);
+					liftRight.set(idleSpeed);
+					}
+				break;
+			case 4:
+				if(enc1.getDistance() < 110*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
+				else
+					{
+					liftLeft.set(0);
+					liftRight.set(0);
+					}
+				break;
+			case 5:
+				if(enc1.getDistance() < 180*4 && limUp.get() == false)
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					}
+				else
+					{
+					liftLeft.set(0);
+					liftRight.set(0);
+					}
+				break;
+			case 6:
+				liftLeft.set(0);
+				liftRight.set(0);
+				break;
+			}
+		}
+		downButton = xbox.getRawButton(porting.butLBumper);
+		upButton = xbox.getRawButton(porting.butRBumper);		
+	}
+	
+	public void getEnc() {
+
+		distance1 = enc1.getDistance();
+		rate1 = enc1.getRate();
+		direction1 = enc1.getDirection();
+		stopped1 = enc1.getStopped();
+		SmartDashboard.putNumber("distance1", distance1);
+		SmartDashboard.putBoolean("direction1",direction1);
+		SmartDashboard.putNumber("rate1",rate1);
+		SmartDashboard.putBoolean("stopped1?",stopped1);
+		
+		distance2 = enc2.getDistance();
+		rate2 = enc2.getRate();
+		direction2 = enc2.getDirection();
+		stopped2 = enc2.getStopped();
+		SmartDashboard.putNumber("distance2", distance2);
+		SmartDashboard.putBoolean("direction2",direction2);
+		SmartDashboard.putNumber("rate2",rate2);
+		SmartDashboard.putBoolean("stopped2?",stopped2);
+	}
+	
+	public long futureTime(float seconds){
+        return System.nanoTime() + (long) (seconds * 1e9);
+    }
+	
+	public boolean driveDistance() {
+		if(autoTimer<System.nanoTime()) {
+			dtr.chassis.arcadeDrive(0, 0);
+			return true;
+		}
+		dtr.chassis.arcadeDrive(.625, 0);
+		return false;
+	}
+	public double findTime(double distanceCm) {
+		double averageSpeed = (290-198);//cm/s
+		double time = averageSpeed/distanceCm;
+		autoTimer = futureTime((long)time+'f');
+		return time;
 	}
 	
 	public void leftAuton(boolean isRight) {
@@ -568,37 +1072,7 @@ public class Robot extends IterativeRobot {
 			}
 		}
 	}
-	
-	public void measureDistance() {
-		switch(state) {
-		case 1:
-			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(.625, 0);
-			state++;
-			break;
-		case 2:
-			Timer.delay(5);
-			state++;
-			break;
-		case 3:
-			dtr.chassis.arcadeDrive(0, 0);
-			dtr.chassis.setSafetyEnabled(true);
-			state++;
-			break;
-		}
-	}
-	
-	public void testMethods() {
-		switch(state) {
-		case 1:
-			findTime(100);
-			state++;
-			break;
-		case 2:
-			if(driveDistance())state++;
-			break;
-		}
-	}
+
 	
 	//temporary autonomous to drive with sonar
 	public void autoSonar() {
@@ -618,204 +1092,4 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("leftSpeed", leftMotor.get()*-1);
 		SmartDashboard.putNumber("rightSpeed", rightMotor.get());
 	}
-	
-	/**This function is called periodically during operator control.*/
-	@Override
-	public void teleopPeriodic() {
-		dtr.chassis.setSafetyEnabled(true);
-		dtr.changeDrive();
-		dtr.updateAxes();
-		LED.set(Relay.Value.kForward);
-		getEnc();
-		buttons();
-
-		if(xbox.getRawAxis(porting.lTrigger)>.2) {
-			intake.set(.3*-xbox.getTriggerAxis(Hand.kLeft));
-		}else if (xbox.getRawAxis(porting.rTrigger)>.2) {
-			intake.set(1*xbox.getTriggerAxis(Hand.kRight));
-		}
-		else
-			intake.set(0);
-	}
-	
-	/**This function is called periodically during test mode**/
-	@Override
-	public void testPeriodic() {}
-	
-	public void buttons() {
-		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
-		{
-			if(positionCase != 1)
-				positionCase--;
-			directionLift = 0;
-		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
-		{
-			if(positionCase != 3)
-				positionCase++;
-			directionLift = 1;
-		}
-		SmartDashboard.putNumber("positionCase", positionCase);
-
-		if(directionLift == 0)
-		{
-			switch(positionCase) {
-			case 0: 
-				liftLeft.set(0);
-				liftRight.set(0);
-				break;
-			case 1:
-				if(enc1.getDistance() > 0 && limDown.get() == false) 
-					{
-					liftLeft.set(-0.25);
-					liftRight.set(-0.25);
-					}
-					
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-					break;
-			case 2:
-				if(enc1.getDistance() > 4*4 && limDown.get() == false)
-					{
-					liftLeft.set(-0.25);
-					liftRight.set(-0.25);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-					break;
-			case 3:
-				if(enc1.getDistance() > 10*4 && limDown.get() == false)
-					{
-					liftLeft.set(-0.25);
-					liftRight.set(-0.25);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			case 4:
-				if(enc1.getDistance() > 110*4 && limDown.get() == false)
-					{	
-					liftLeft.set(-0.25);
-					liftRight.set(-0.25);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			}
-		}
-		if(directionLift == 1)
-		{
-			switch(positionCase) {
-			case 2:
-				if(enc1.getDistance() < 4*4 && limUp.get() == false)
-					{
-					liftLeft.set(0.75);
-					liftRight.set(0.75);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			case 3:
-				if(enc1.getDistance() < 10*4 && limUp.get() == false)
-					{
-					liftLeft.set(0.75);
-					liftRight.set(0.75);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			case 4:
-				if(enc1.getDistance() < 110*4 && limUp.get() == false)
-					{
-					liftLeft.set(0.75);
-					liftRight.set(0.75);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			case 5:
-				if(enc1.getDistance() < 180*4 && limUp.get() == false)
-					{
-					liftLeft.set(0.75);
-					liftRight.set(0.75);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
-			case 6:
-				liftLeft.set(0);
-				liftRight.set(0);
-				break;
-			}
-		}
-		downButton = xbox.getRawButton(porting.butLBumper);
-		upButton = xbox.getRawButton(porting.butRBumper);		
-	}
-	
-	public void getEnc() {
-
-		distance1 = enc1.getDistance();
-		rate1 = enc1.getRate();
-		direction1 = enc1.getDirection();
-		stopped1 = enc1.getStopped();
-		SmartDashboard.putNumber("distance1", distance1);
-		SmartDashboard.putBoolean("direction1",direction1);
-		SmartDashboard.putNumber("rate1",rate1);
-		SmartDashboard.putBoolean("stopped1?",stopped1);
-		
-		distance2 = enc2.getDistance();
-		rate2 = enc2.getRate();
-		direction2 = enc2.getDirection();
-		stopped2 = enc2.getStopped();
-		SmartDashboard.putNumber("distance2", distance2);
-		SmartDashboard.putBoolean("direction2",direction2);
-		SmartDashboard.putNumber("rate2",rate2);
-		SmartDashboard.putBoolean("stopped2?",stopped2);
-
-		
-
-	}
-	
-	public long futureTime(float seconds){
-        return System.nanoTime() + (long) (seconds * 1e9);
-    }
-	
-	public boolean driveDistance() {
-		if(autoTimer<System.nanoTime()) {
-			dtr.chassis.arcadeDrive(0, 0);
-			return true;
-		}
-		dtr.chassis.arcadeDrive(.625, 0);
-		return false;
-	}
-	public double findTime(double distanceCm) {
-		double averageSpeed = (290-198);//cm/s
-		double time = averageSpeed/distanceCm;
-		autoTimer = futureTime((long)time+'f');
-		return time;
-	}
-	
 }
