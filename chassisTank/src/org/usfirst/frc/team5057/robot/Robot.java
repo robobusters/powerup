@@ -220,13 +220,13 @@ public class Robot extends IterativeRobot {
 				driveStraight();
 				break;
 			case center:
-				/*if(gameData.length()>0) {
+				if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
-						centerAuton(false);
+						driveCenter(false);
 					}else {
-						centerAuton(true);
+						driveCenter(true);
 					}
-				}*/
+				}
 				break;
 			case left:
 				forwardBackward();
@@ -254,6 +254,53 @@ public class Robot extends IterativeRobot {
 		}Timer.delay(.005);
 	}
 	
+	public void driveCenter(boolean isRight){
+		switch(state){
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(1);
+			state++;
+			break;
+		case 2:
+			dtr.chassis.arcadeDrive(0,0);
+			if(isRight){
+				if(dtr.gyro.getAngle()>45){
+					dtr.chassis.arcadeDrive(0,0);
+					state++;
+				}else{
+					dtr.chassis.arcadeDrive(0,.625);
+				}
+			}else{
+				if(dtr.gyro.getAngle()<-45){
+					dtr.chassis.arcadeDrive(0,0);
+					state++;
+				}else{
+					dtr.chassis.arcadeDrive(0,-.625);
+				}
+			}
+			break;
+		case 3:
+			dtr.chassis.arcadeDrive(.9,0);
+			Timer.delay(2);
+			dtr.chassis.arcadeDrive(-.625,0);
+			Timer.delay(1);
+			dtr.chassis.arcadeDrive(.625,0);
+			Timer.delay(1.5);
+			dtr.chassis.arcadeDrive(-.625,0);
+			Timer.delay(3);
+			state++;
+			break;
+		case 4:
+			dtr.chassis.arcadeDrive(0,0);
+			chassis.setSafetyEnabled(true);
+			state++;
+			break;
+		default:
+			dtr.chassis.arcadeDrive(0,0);
+			break;
+		}
+	}
 	
 	public void driveStraight() {
 		switch(state) {
