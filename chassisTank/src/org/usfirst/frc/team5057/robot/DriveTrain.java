@@ -179,7 +179,7 @@ public class DriveTrain {
 	
 	public boolean turnRight(double degrees) {
 		if(degrees>gyro.getAngle()) {
-			chassis.tankDrive(-.5, .5);
+			chassis.tankDrive(-.625, .625);
 			return false;
 		}
 		chassis.arcadeDrive(0, 0);
@@ -188,7 +188,7 @@ public class DriveTrain {
 	
 	public boolean turnLeft(double degrees) {
 		if(-degrees<gyro.getAngle()) {
-			chassis.tankDrive(.5, -.5);
+			chassis.tankDrive(.625, -.625);
 			return false;
 		}
 		chassis.arcadeDrive(0, 0);

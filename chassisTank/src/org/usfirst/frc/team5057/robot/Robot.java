@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Accelerometer;
@@ -46,7 +47,7 @@ import edu.wpi.first.wpilibj.vision.VisionThread;
  */
 public class Robot extends IterativeRobot {
 	private static final String driveStraightAuto = "Drive Straight Auto";
-	private static final String kCustomAuto = "My Auto";
+	private static final String FowardBackward = "Forward Backward";
 	private static final String center = "Center Auto";
 	private static final String left = "Left Auto";
 	private static final String right = "Right Auto";
@@ -63,8 +64,8 @@ public class Robot extends IterativeRobot {
 	
 	//driveTrain
 	DifferentialDrive chassis;
-	Spark leftMotor = new Spark(leftDrivePort);
-	Spark rightMotor = new Spark(rightDrivePort);
+	Victor leftMotor = new Victor(leftDrivePort);
+	Victor rightMotor = new Victor(rightDrivePort);
 	JoystickLocations porting = new JoystickLocations();
 	XboxController xbox = new XboxController(porting.joystickPort);
 	DriveTrain dtr;
@@ -117,7 +118,7 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		//choose which autonomous to use
 		m_chooser.addDefault("Drive Straight Auto", driveStraightAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
+		m_chooser.addObject("Foward Backward", FowardBackward);
 		m_chooser.addObject("Center Auto", center);
 		m_chooser.addObject("Right Auto", right);
 		m_chooser.addObject("Left Auto", left);
@@ -212,8 +213,8 @@ public class Robot extends IterativeRobot {
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		switch (m_autoSelected) {
-			case kCustomAuto://testing autonomous
-				testMethods();
+			case FowardBackward://testing autonomous
+				forwardBackward();
 				break;
 			case driveStraightAuto://nothing right now
 				driveStraight();
@@ -228,7 +229,7 @@ public class Robot extends IterativeRobot {
 				}*/
 				break;
 			case left:
-				leftSwerve();
+				forwardBackward();
 				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						leftAuton(false);
@@ -238,7 +239,6 @@ public class Robot extends IterativeRobot {
 				}*/
 				break;
 			case right:
-				rightSwerve();
 				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						rightAuton(false);
@@ -274,267 +274,31 @@ public class Robot extends IterativeRobot {
 		}
 	}
 	
-	public void leftSwerve() {
+	public void forwardBackward() {
 		switch(state) {
 		case 1:
 			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(.625, 0);
-			intake.set(.15);
+			dtr.chassis.arcadeDrive(-.75, 0);
+			intake.set(-.15);
 			state++;
 			break;
 		case 2:
-			Timer.delay(5);
+			Timer.delay(2.5);
+			dtr.chassis.arcadeDrive(0, 0);
 			state++;
 			break;
 		case 3:
-			if(dtr.turnRight(180)) {
-				state++;
-				dtr.chassis.arcadeDrive(0, 0);
-			}
+			state++;
 			break;
 		case 4:
-			dtr.chassis.arcadeDrive(.625, 0);
+			dtr.chassis.arcadeDrive(.75, 0);
 			state++;
 			break;
 		case 5:
-			Timer.delay(5);
+			Timer.delay(2.5);
 			state++;
-			break;
-		case 6:
-			dtr.chassis.arcadeDrive(-.625, 0);//73.6 cm/s
-			state++;
-			break;
-		case 7:
-			Timer.delay(1);
-			state++;
-			break;
-		case 8:
-			if(dtr.gyro.getAngle()<90) {
-				dtr.chassis.arcadeDrive(0, 0);
-				state++;
-			}else {
-				dtr.chassis.tankDrive(-.5, .5);
-			}
-			break;
-		case 9:
-			dtr.chassis.arcadeDrive(.625, 0);
-			state++;
-			break;
-		case 10:
-			Timer.delay(3.988);
-			state++;
-			break;
-		case 11:
 			dtr.chassis.arcadeDrive(0, 0);
-			Timer.delay(.5);
-			break;
-		case 12:
-			if(dtr.gyro.getAngle()>180) {
-				dtr.chassis.arcadeDrive(0, 0);
-				state++;
-			}else {
-				dtr.chassis.tankDrive(.5, -.5);
-			}
-		case 13:
-			if(enc1.getDistance() < firstAngle && limUp.get() == false)
-			{
-				liftLeft.set(liftSpeed);
-				liftRight.set(liftSpeed);
-			}
-			else
-			{
-				liftLeft.set(idleSpeed);
-				liftRight.set(idleSpeed);
-				state++;
-			}
-			break;
-		case 14:
-			dtr.chassis.arcadeDrive(.625, 0);
-			Timer.delay(1);
-			state++;
-			break;
-		case 15:
-			intake.set(outtakeSpeed);
-			Timer.delay(2);
-			state++;
-			break;
-		case 16:
-			dtr.chassis.arcadeDrive(-.625, 0);
-			Timer.delay(1);
 			intake.set(0);
-			//Timer.delay(3.831521739);
-			state++;
-			break;
-		case 17:
-			if(enc1.getDistance() > 0 && limDown.get() == false) 
-			{
-			liftLeft.set(-dropSpeed);
-			liftRight.set(-dropSpeed);
-			}
-			
-			else
-			{
-				liftLeft.set(0);
-				liftRight.set(0);
-				intake.set(0);
-				chassis.setSafetyEnabled(true);
-				state++;
-			}
-			break;
-		/*case 17:
-			if(dtr.gyro.getAngle()<90) {
-				dtr.chassis.arcadeDrive(0, 0);
-				intake.set(intakeSpeed);
-				state++;
-			}else {
-				dtr.chassis.tankDrive(-.5, .5);
-			}
-		case 18:
-			if(enc1.getDistance() < secondAngle && limUp.get() == false)
-			{
-				liftLeft.set(liftSpeed);
-				liftRight.set(liftSpeed);
-			}
-			else
-			{
-				liftLeft.set(idleSpeed);
-				liftRight.set(idleSpeed);
-				state++;
-			}
-			break;
-		case 19:
-			Timer.delay(1);
-			dtr.chassis.arcadeDrive(-.625, 0);
-			Timer.delay(1);
-			dtr.chassis.arcadeDrive(0, 0);
-			state++;
-			break;
-		case 20:
-			if(enc1.getDistance() > 0 && limDown.get() == false) 
-			{
-			liftLeft.set(-dropSpeed);
-			liftRight.set(-dropSpeed);
-			}
-			
-			else
-			{
-				liftLeft.set(0);
-				liftRight.set(0);
-				intake.set(0);
-				chassis.setSafetyEnabled(true);
-				state++;
-			}
-			break;*/
-		}
-	}
-	
-	
-	public void rightSwerve() {
-		switch(state) {
-		case 1:
-			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(.625, 0);
-			intake.set(.15);
-			state++;
-			break;
-		case 2:
-			Timer.delay(5);
-			state++;
-			break;
-		case 3:
-			if(dtr.turnRight(180)) {
-				state++;
-				dtr.chassis.arcadeDrive(0, 0);
-			}
-			break;
-		case 4:
-			dtr.chassis.arcadeDrive(.625, 0);
-			state++;
-			break;
-		case 5:
-			Timer.delay(5);
-			state++;
-			break;
-		case 6:
-			dtr.chassis.arcadeDrive(-.625, 0);//73.6 cm/s
-			state++;
-			break;
-		case 7:
-			Timer.delay(1);
-			state++;
-			break;
-		case 8:
-			if(dtr.gyro.getAngle()>270) {
-				dtr.chassis.arcadeDrive(0, 0);
-				state++;
-			}else {
-				dtr.chassis.tankDrive(.5, -.5);
-			}
-			break;
-		case 9:
-			dtr.chassis.arcadeDrive(.625, 0);
-			state++;
-			break;
-		case 10:
-			Timer.delay(4.416337);
-			state++;
-			break;
-		case 11:
-			dtr.chassis.arcadeDrive(0, 0);
-			Timer.delay(.5);
-			break;
-		case 12:
-			if(dtr.gyro.getAngle()<180) {
-				dtr.chassis.arcadeDrive(0, 0);
-				state++;
-			}else {
-				dtr.chassis.tankDrive(-.5, +.5);
-			}
-		case 13:
-			if(enc1.getDistance() < firstAngle && limUp.get() == false)
-			{
-				liftLeft.set(liftSpeed);
-				liftRight.set(liftSpeed);
-			}
-			else
-			{
-				liftLeft.set(idleSpeed);
-				liftRight.set(idleSpeed);
-				state++;
-			}
-			break;
-		case 14:
-			dtr.chassis.arcadeDrive(.625, 0);
-			Timer.delay(1);
-			state++;
-			break;
-		case 15:
-			intake.set(outtakeSpeed);
-			Timer.delay(2);
-			state++;
-			break;
-		case 16:
-			dtr.chassis.arcadeDrive(-.625, 0);
-			Timer.delay(1);
-			intake.set(0);
-			//Timer.delay(3.831521739);
-			state++;
-			break;
-		case 17:
-			if(enc1.getDistance() > 0 && limDown.get() == false) 
-			{
-			liftLeft.set(-dropSpeed);
-			liftRight.set(-dropSpeed);
-			}
-			
-			else
-			{
-				liftLeft.set(0);
-				liftRight.set(0);
-				intake.set(0);
-				chassis.setSafetyEnabled(true);
-				state++;
-			}
 			break;
 		}
 	}
@@ -552,7 +316,7 @@ public class Robot extends IterativeRobot {
 	}
 	
 	/**This function is called periodically during operator control.*/
-	double intakeSpeed=.35;
+	double intakeSpeed=.45;
 	double outtakeSpeed=1;
 	@Override
 	public void teleopPeriodic() {
@@ -577,10 +341,10 @@ public class Robot extends IterativeRobot {
 	public void testPeriodic() {}
 	
 	double firstAngle=4*4;
-	double secondAngle=10*4;
+	double secondAngle=7*4;
 	double dropSpeed = .25;
 	double liftSpeed = .75;
-	double idleSpeed = .1;
+	double idleSpeed = .25;
 	public void buttons() {
 		if(downButton == false && xbox.getRawButton(porting.butLBumper) == true)
 		{
