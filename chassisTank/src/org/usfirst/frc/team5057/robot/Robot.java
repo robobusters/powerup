@@ -258,31 +258,31 @@ public class Robot extends IterativeRobot {
 		switch(state){
 		case 1:
 			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(-.625, 0);
-			Timer.delay(1);
+			dtr.chassis.arcadeDrive(.58, 0);
+			Timer.delay(1.75);
 			state++;
 			break;
 		case 2:
 			dtr.chassis.arcadeDrive(0,0);
 			if(isRight){
-				if(dtr.gyro.getAngle()>45){
+				if(dtr.gyro.getAngle()>28){
 					dtr.chassis.arcadeDrive(0,0);
 					state++;
 				}else{
-					dtr.chassis.arcadeDrive(0,.625);
+					dtr.chassis.arcadeDrive(0,.59);
 				}
 			}else{
-				if(dtr.gyro.getAngle()<-45){
+				if(dtr.gyro.getAngle()<-30){
 					dtr.chassis.arcadeDrive(0,0);
 					state++;
 				}else{
-					dtr.chassis.arcadeDrive(0,-.625);
+					dtr.chassis.arcadeDrive(0,-.59);
 				}
 			}
 			break;
 		case 3:
-			dtr.chassis.arcadeDrive(.9,0);
-			Timer.delay(2);
+			dtr.chassis.arcadeDrive(.75,0);
+			Timer.delay(4);
 			dtr.chassis.arcadeDrive(-.625,0);
 			Timer.delay(1);
 			dtr.chassis.arcadeDrive(.625,0);
@@ -325,7 +325,7 @@ public class Robot extends IterativeRobot {
 		switch(state) {
 		case 1:
 			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(-.75, 0);
+			dtr.chassis.arcadeDrive(.75, 0);
 			intake.set(-.15);
 			state++;
 			break;
@@ -338,7 +338,7 @@ public class Robot extends IterativeRobot {
 			state++;
 			break;
 		case 4:
-			dtr.chassis.arcadeDrive(.75, 0);
+			dtr.chassis.arcadeDrive(-.75, 0);
 			state++;
 			break;
 		case 5:
