@@ -400,7 +400,7 @@ public class Robot extends IterativeRobot {
 			directionLift = 0;
 		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
 		{
-			if(positionCase != 3)
+			if(positionCase != 5)
 				positionCase++;
 			directionLift = 1;
 		}
