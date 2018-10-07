@@ -49,8 +49,8 @@ public class Robot extends IterativeRobot {
 	private static final String driveStraightAuto = "Drive Straight Auto";
 	private static final String FowardBackward = "Forward Backward";
 	private static final String center = "Center Auto";
-	private static final String left = "Left Auto";
-	private static final String right = "Right Auto";
+	//private static final String left = "Left Auto";
+	//private static final String right = "Right Auto";
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	
@@ -120,8 +120,8 @@ public class Robot extends IterativeRobot {
 		m_chooser.addDefault("Drive Straight Auto", driveStraightAuto);
 		m_chooser.addObject("Foward Backward", FowardBackward);
 		m_chooser.addObject("Center Auto", center);
-		m_chooser.addObject("Right Auto", right);
-		m_chooser.addObject("Left Auto", left);
+		//m_chooser.addObject("Right Auto", right);
+		//m_chooser.addObject("Left Auto", left);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
 		rightMotor.setInverted(false);
@@ -213,13 +213,13 @@ public class Robot extends IterativeRobot {
 		String gameData;
 		gameData = DriverStation.getInstance().getGameSpecificMessage();
 		switch (m_autoSelected) {
-			case FowardBackward://testing autonomous
+			case FowardBackward://works
 				forwardBackward();
 				break;
-			case driveStraightAuto://nothing right now
+			case driveStraightAuto://works
 				driveStraight();
 				break;
-			case center:
+			case center://works
 				if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
 						driveCenter(false);
@@ -228,7 +228,7 @@ public class Robot extends IterativeRobot {
 					}
 				}
 				break;
-			case left:
+			/**case left:
 				forwardBackward();
 				/*if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
@@ -236,7 +236,7 @@ public class Robot extends IterativeRobot {
 					}else {
 						leftAuton(true);
 					}
-				}*/
+				}
 				break;
 			case right:
 				/*if(gameData.length()>0) {
@@ -245,8 +245,8 @@ public class Robot extends IterativeRobot {
 					}else {
 						rightAuton(true);
 					}
-				}*/
-				break;
+				}
+				break; **/
 			default:
 				// Put default auto code here
 				break;
@@ -350,6 +350,7 @@ public class Robot extends IterativeRobot {
 		}
 	}
 	
+	/**practice auto for speed detection
 	public void testMethods() {
 		switch(state) {
 		case 1:
@@ -360,7 +361,7 @@ public class Robot extends IterativeRobot {
 			if(driveDistance())state++;
 			break;
 		}
-	}
+	}**/
 	
 	/**This function is called periodically during operator control.*/
 	double intakeSpeed=.45;
@@ -389,6 +390,7 @@ public class Robot extends IterativeRobot {
 	
 	double firstAngle=4*4;
 	double secondAngle=7*4;
+	double softwareCap = 5;
 	double dropSpeed = .25;
 	double liftSpeed = .75;
 	double idleSpeed = .25;
@@ -400,7 +402,7 @@ public class Robot extends IterativeRobot {
 			directionLift = 0;
 		}else if(upButton == false && xbox.getRawButton(porting.butRBumper) == true)
 		{
-			if(positionCase != 5)
+			if(positionCase != softwareCap)
 				positionCase++;
 			directionLift = 1;
 		}
@@ -546,7 +548,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putBoolean("stopped2?",stopped2);
 	}
 	
-	public long futureTime(float seconds){
+	/**public long futureTime(float seconds){
         return System.nanoTime() + (long) (seconds * 1e9);
     }
 	
@@ -883,7 +885,7 @@ public class Robot extends IterativeRobot {
 			}
 		}
 	}
-
+**/
 	
 	//temporary autonomous to drive with sonar
 	public void autoSonar() {
