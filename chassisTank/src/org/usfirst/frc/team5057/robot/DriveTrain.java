@@ -117,7 +117,7 @@ public class DriveTrain {
 			getHeading();
 			getDistance();
 			getAccel();
-			chassis.tankDrive(dampen*-xbox.getRawAxis(porting.rYAxis),dampen*-xbox.getRawAxis(porting.lYAxis) );
+			chassis.tankDrive(dampen*-xbox.getRawAxis(porting.lYAxis),dampen*-xbox.getRawAxis(porting.rYAxis) );
 			break;
 		case 4://button Y drive this like a car
 			chassis.curvatureDrive(dampen*-xbox.getRawAxis(porting.lYAxis),dampen*-xbox.getRawAxis(porting.rXAxis) , false);//cheeeeessssyyyy

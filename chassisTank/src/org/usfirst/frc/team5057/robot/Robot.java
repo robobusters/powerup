@@ -49,8 +49,9 @@ public class Robot extends IterativeRobot {
 	private static final String driveStraightAuto = "Drive Straight Auto";
 	private static final String FowardBackward = "Forward Backward";
 	private static final String center = "Center Auto";
-	//private static final String left = "Left Auto";
-	//private static final String right = "Right Auto";
+	private static final String scaleAuto = "Scale boi";
+	private static final String right = "Right Auto";
+	private static final String left = "Left Auto";
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	
@@ -107,10 +108,10 @@ public class Robot extends IterativeRobot {
 	SpeedControllerGroup intake;
 	
 	//limit switches
-	final int limitPortUp = 4;
+	/*final int limitPortUp = 4;
 	final int limitPortDown = 5;
 	DigitalInput limUp = new DigitalInput(limitPortUp);
-	DigitalInput limDown = new DigitalInput(limitPortDown);
+	DigitalInput limDown = new DigitalInput(limitPortDown);*/
 	
 	public float autoTimer;
 	
@@ -120,8 +121,9 @@ public class Robot extends IterativeRobot {
 		m_chooser.addDefault("Drive Straight Auto", driveStraightAuto);
 		m_chooser.addObject("Foward Backward", FowardBackward);
 		m_chooser.addObject("Center Auto", center);
-		//m_chooser.addObject("Right Auto", right);
-		//m_chooser.addObject("Left Auto", left);
+		m_chooser.addObject("Scale boi", scaleAuto);
+		m_chooser.addObject("Left Auto", left);
+		m_chooser.addObject("Right Auto", right);
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
 		rightMotor.setInverted(false);
@@ -133,7 +135,7 @@ public class Robot extends IterativeRobot {
 		
 		liftLeft.setInverted(true);
 		
-		intakeRight.setInverted(true);
+		intakeLeft.setInverted(true);
 		intakeRight.setSafetyEnabled(false);
 		intakeLeft.setSafetyEnabled(false);
 		intake = new SpeedControllerGroup(intakeLeft, intakeRight);
@@ -222,9 +224,38 @@ public class Robot extends IterativeRobot {
 			case center://works
 				if(gameData.length()>0) {
 					if(gameData.charAt(0)=='L') {
-						driveCenter(false);
+						switchCenter(false);
 					}else {
-						driveCenter(true);
+						switchCenter(true);
+					}
+				}
+				break;
+			case scaleAuto:
+				if (gameData.length()>0) {
+					if(gameData.charAt(1)=='L') {
+						scaleAuto();
+					}else {
+						scaleSwerve();
+					}
+				}
+				break;
+			case left:
+				if(gameData.length()>0) {
+					if(gameData.charAt(0)=='L') {
+						switchEither();
+					}else {
+						BackwardForward();
+						//driveCenter(true);
+					}
+				}
+				break;
+			case right:
+				if(gameData.length()>0) {
+					if(gameData.charAt(0)=='L') {
+						//driveCenter(false);
+						BackwardForward();
+					}else {
+						switchEither();
 					}
 				}
 				break;
@@ -254,33 +285,74 @@ public class Robot extends IterativeRobot {
 		}Timer.delay(.005);
 	}
 	
+	public void BackwardForward() {
+		switch(state) {
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.75, 0);
+			intake.set(-.15);
+			state++;
+			break;
+		case 2:
+			Timer.delay(2.5);
+			dtr.chassis.arcadeDrive(0, 0);
+			state++;
+			break;
+		case 3:
+			state++;
+			break;
+		case 4:
+			dtr.chassis.arcadeDrive(.75, 0);
+			state++;
+			break;
+		case 5:
+			Timer.delay(2.5);
+			state++;
+			dtr.chassis.arcadeDrive(0, 0);
+			intake.set(0);
+			break;
+		}
+	}
+	
 	public void driveCenter(boolean isRight){
 		switch(state){
 		case 1:
 			chassis.setSafetyEnabled(false);
-			dtr.chassis.arcadeDrive(.58, 0);
+			dtr.chassis.arcadeDrive(-.58, 0);
 			Timer.delay(1.75);
 			state++;
 			break;
 		case 2:
 			dtr.chassis.arcadeDrive(0,0);
 			if(isRight){
-				if(dtr.gyro.getAngle()>28){
-					dtr.chassis.arcadeDrive(0,0);
-					state++;
-				}else{
-					dtr.chassis.arcadeDrive(0,.59);
-				}
-			}else{
-				if(dtr.gyro.getAngle()<-30){
+				if(dtr.gyro.getAngle()>(28)){
 					dtr.chassis.arcadeDrive(0,0);
 					state++;
 				}else{
 					dtr.chassis.arcadeDrive(0,-.59);
 				}
+			}else{
+				if(dtr.gyro.getAngle()<(-30)){
+					dtr.chassis.arcadeDrive(0,0);
+					state++;
+				}else{
+					dtr.chassis.arcadeDrive(0,.59);
+				}
 			}
 			break;
 		case 3:
+			if(enc1.getDistance() < 48*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(-0.25);
+				liftRight.set(-0.25);
+				}
+			else
+				{
+				liftLeft.set(0);
+				liftRight.set(0);
+				}
+		
+			
 			dtr.chassis.arcadeDrive(.75,0);
 			Timer.delay(4);
 			dtr.chassis.arcadeDrive(-.625,0);
@@ -302,6 +374,85 @@ public class Robot extends IterativeRobot {
 		}
 	}
 	
+	public void switchCenter(boolean isRight) {
+			switch(state){
+			case 1:
+				chassis.setSafetyEnabled(false);
+				dtr.chassis.arcadeDrive(.58, 0);
+				Timer.delay(1.75);
+				state++;
+				break;
+			case 2:
+				dtr.chassis.arcadeDrive(0,0);
+				if(isRight){
+					if(dtr.gyro.getAngle()>(28)){
+						dtr.chassis.arcadeDrive(0,0);
+						state++;
+					}else{
+						dtr.chassis.arcadeDrive(0,.59);
+					}
+				}else{
+					if(dtr.gyro.getAngle()<(-30)){
+						dtr.chassis.arcadeDrive(0,0);
+						state++;
+					}else{
+						dtr.chassis.arcadeDrive(0,-.59);
+					}
+				}
+				break;
+			case 3:
+				dtr.chassis.arcadeDrive(-.75,0);
+				intake.set(intakeSpeed);
+				Timer.delay(4);
+				intake.set(0);
+				if(enc1.getDistance() < 45*4) //&& limDown.get() == false)
+					{	
+					liftLeft.set(.75);
+					liftRight.set(.75);
+					}
+				else
+					{
+					liftLeft.set(0.75);
+					liftRight.set(0.75);
+					intake.set(-outtakeSpeed);
+					state++;
+					}
+				break;
+			case 4:
+
+				if(enc1.getDistance() < 48*4) //&& limDown.get() == false)
+					{	
+					liftLeft.set(.75);
+					liftRight.set(.75);
+					intake.set(-outtakeSpeed);
+					}
+				else
+					{
+					liftLeft.set(0.25);
+					liftRight.set(0.25);
+					intake.set(-outtakeSpeed);
+					Timer.delay(2);
+					state++;
+					}
+				break;
+			case 5:
+				if (enc1.getDistance()>0) {
+					liftLeft.set(-.45);
+					liftRight.set(-.45);
+				}else {
+					liftLeft.set(0);
+					liftRight.set(0);
+					intake.set(0);
+					state++;
+					
+				}
+				break;
+			default:
+				dtr.chassis.setSafetyEnabled(true);
+			
+		}
+	}
+	
 	public void driveStraight() {
 		switch(state) {
 		case 1:
@@ -319,6 +470,178 @@ public class Robot extends IterativeRobot {
 			state++;
 			break;
 		}
+	}
+	public void driveBack() {
+		switch(state) {
+		case 1:
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			state++;
+			break;
+		case 2:
+			Timer.delay(5);
+			state++;
+			break;
+		case 3:
+			dtr.chassis.arcadeDrive(0, 0);
+			dtr.chassis.setSafetyEnabled(true);
+			state++;
+			break;
+		}
+	}
+	public void scaleSwerve() {
+		switch (state) {
+		case 1: 
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(6);
+			state++; 
+			break;
+		case 2:
+			dtr.chassis.arcadeDrive(0, 0);
+			if(dtr.gyro.getAngle()>(90)){
+				dtr.chassis.arcadeDrive(0,0);
+				state++;
+			}else{
+				dtr.chassis.arcadeDrive(0,.59);
+			}
+			break;
+		case 3:
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(6);
+			dtr.chassis.arcadeDrive(0, 0);
+			dtr.chassis.setSafetyEnabled(true);
+			state++;
+			break;
+			
+		}
+	}
+	public boolean scaleAuto() {
+		switch (state) {
+		case 1: 
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(6.25);
+			state++; 
+			break;
+		case 2:
+			dtr.chassis.arcadeDrive(0, 0);
+			
+			if(dtr.gyro.getAngle()>(25)){
+				dtr.chassis.arcadeDrive(0,0);
+				Timer.delay(1);
+				state++;
+			}else{
+				dtr.chassis.arcadeDrive(0,+.59);
+			}
+			
+			break;
+		case 3:
+			if(enc1.getDistance() < 45*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(.75);
+				liftRight.set(.75);
+				}
+			else
+				{
+				liftLeft.set(0.75);
+				liftRight.set(0.75);
+				intake.set(-outtakeSpeed);
+				state++;
+				}
+			break;
+		case 4:
+			if(enc1.getDistance() < 48*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(.75);
+				liftRight.set(.75);
+				intake.set(-outtakeSpeed);
+				}
+			else
+				{
+				liftLeft.set(0.25);
+				liftRight.set(0.25);
+				intake.set(-outtakeSpeed);
+				Timer.delay(2);
+				state++;
+				}
+			break;
+		case 5:
+			if (enc1.getDistance()>0) {
+				liftLeft.set(-.45);
+				liftRight.set(-.45);
+			}else {
+				liftLeft.set(0);
+				liftRight.set(0);
+				intake.set(0);
+				state++;
+				return true;
+			}
+			break;
+		default:
+			dtr.chassis.setSafetyEnabled(true);
+		}
+		return false;
+	}
+	
+	public boolean switchEither() {
+		switch (state) {
+		case 1: 
+			chassis.setSafetyEnabled(false);
+			dtr.chassis.arcadeDrive(-.625, 0);
+			Timer.delay(3);
+			state++; 
+			break;
+		case 2:
+			dtr.chassis.arcadeDrive(0, 0);
+			state++;
+			break;
+		case 3:
+			if(enc1.getDistance() < 45*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(.75);
+				liftRight.set(.75);
+				}
+			else
+				{
+				liftLeft.set(0.75);
+				liftRight.set(0.75);
+				intake.set(-outtakeSpeed);
+				state++;
+				}
+			break;
+		case 4:
+			if(enc1.getDistance() < 48*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(.75);
+				liftRight.set(.75);
+				intake.set(-outtakeSpeed);
+				}
+			else
+				{
+				liftLeft.set(0.25);
+				liftRight.set(0.25);
+				intake.set(-outtakeSpeed);
+				Timer.delay(2);
+				state++;
+				}
+			break;
+		case 5:
+			if (enc1.getDistance()>0) {
+				liftLeft.set(-.45);
+				liftRight.set(-.45);
+			}else {
+				liftLeft.set(0);
+				liftRight.set(0);
+				intake.set(0);
+				state++;
+				return true;
+			}
+			break;
+		default:
+			dtr.chassis.setSafetyEnabled(true);
+		}
+		return false;
 	}
 	
 	public void forwardBackward() {
@@ -364,8 +687,8 @@ public class Robot extends IterativeRobot {
 	}**/
 	
 	/**This function is called periodically during operator control.*/
-	double intakeSpeed=.45;
-	double outtakeSpeed=1;
+	double intakeSpeed=1.0;
+	double outtakeSpeed=1.0;
 	@Override
 	public void teleopPeriodic() {
 		dtr.chassis.setSafetyEnabled(true);
@@ -388,9 +711,9 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testPeriodic() {}
 	
-	double firstAngle=4*4;
-	double secondAngle=7*4;
-	double softwareCap = 5;
+	double firstAngle=1*4;
+	double secondAngle=9*4;
+	double softwareCap = 4;
 	double dropSpeed = .25;
 	double liftSpeed = .75;
 	double idleSpeed = .25;
@@ -416,7 +739,7 @@ public class Robot extends IterativeRobot {
 				liftRight.set(0);
 				break;
 			case 1:
-				if(enc1.getDistance() > 0 && limDown.get() == false) 
+				if(enc1.getDistance() > 0 )//&& limDown.get() == false) 
 					{
 					liftLeft.set(-dropSpeed);
 					liftRight.set(-dropSpeed);
@@ -429,7 +752,7 @@ public class Robot extends IterativeRobot {
 					}
 					break;
 			case 2:
-				if(enc1.getDistance() > firstAngle && limDown.get() == false)
+				if(enc1.getDistance() > firstAngle)// && limDown.get() == false)
 					{
 					liftLeft.set(-dropSpeed);
 					liftRight.set(-dropSpeed);
@@ -441,7 +764,7 @@ public class Robot extends IterativeRobot {
 					}
 					break;
 			case 3:
-				if(enc1.getDistance() > secondAngle && limDown.get() == false)
+				if(enc1.getDistance() > secondAngle)// && limDown.get() == false)
 					{
 					liftLeft.set(-dropSpeed);
 					liftRight.set(-dropSpeed);
@@ -453,7 +776,7 @@ public class Robot extends IterativeRobot {
 					}
 				break;
 			case 4:
-				if(enc1.getDistance() > 110*4 && limDown.get() == false)
+				if(enc1.getDistance() > 50*4) //&& limDown.get() == false)
 					{	
 					liftLeft.set(-0.25);
 					liftRight.set(-0.25);
@@ -464,28 +787,52 @@ public class Robot extends IterativeRobot {
 					liftRight.set(0);
 					}
 				break;
+			case 5:
+				if(enc1.getDistance() > 50*4) //&& limDown.get() == false)
+				{	
+				liftLeft.set(-0.25);
+				liftRight.set(-0.25);
+				}
+			else
+				{
+				liftLeft.set(0);
+				liftRight.set(0);
+				}
+			break;
 			}
 		}
 		if(directionLift == 1)
 		{
 			switch(positionCase) {
 			case 2:
-				if(enc1.getDistance() < firstAngle && limUp.get() == false)
+				if(enc1.getDistance() < firstAngle) //&& limUp.get() == false)
 					{
 					liftLeft.set(liftSpeed);
 					liftRight.set(liftSpeed);
 					}
 				else
 					{
-					liftLeft.set(idleSpeed);
-					liftRight.set(idleSpeed);
+					liftLeft.set(.1);
+					liftRight.set(.1);
 					}
 				break;
 			case 3:
-				if(enc1.getDistance() < secondAngle && limUp.get() == false)
+				if(enc1.getDistance() < secondAngle) //&& limUp.get() == false)
 					{
 					liftLeft.set(liftSpeed);
 					liftRight.set(liftSpeed);
+					}
+				else
+					{
+					liftLeft.set(.1);
+					liftRight.set(.1);
+					}
+				break;
+			case 4:
+				if(enc1.getDistance() < 50*4) //&& limUp.get() == false)
+					{
+					liftLeft.set(0.85);
+					liftRight.set(0.85);
 					}
 				else
 					{
@@ -493,28 +840,16 @@ public class Robot extends IterativeRobot {
 					liftRight.set(idleSpeed);
 					}
 				break;
-			case 4:
-				if(enc1.getDistance() < 110*4 && limUp.get() == false)
-					{
-					liftLeft.set(0.75);
-					liftRight.set(0.75);
-					}
-				else
-					{
-					liftLeft.set(0);
-					liftRight.set(0);
-					}
-				break;
 			case 5:
-				if(enc1.getDistance() < 180*4 && limUp.get() == false)
+				if(enc1.getDistance() < 50*4 )//&& limUp.get() == false)
 					{
 					liftLeft.set(0.75);
 					liftRight.set(0.75);
 					}
 				else
 					{
-					liftLeft.set(0);
-					liftRight.set(0);
+					liftLeft.set(idleSpeed);
+					liftRight.set(idleSpeed);
 					}
 				break;
 			case 6:
